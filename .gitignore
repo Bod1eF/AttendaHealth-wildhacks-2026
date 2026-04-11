@@ -39,6 +39,13 @@ yarn-error.log*
 # claude code settings (contains tokens)
 .claude/settings.json
 
+# claude instructions (project-specific)
+CLAUDE.md
+AGENTS.md
+
+# playwright mcp
+.playwright-mcp/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

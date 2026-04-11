@@ -27,14 +27,8 @@ from supabase import create_client, Client
 # Configuration
 # ---------------------------------------------------------------------------
 
-SUPABASE_URL = os.environ.get(
-    "SUPABASE_URL",
-    "https://vnwogmibqucjycyscppw.supabase.co",
-)
-SUPABASE_KEY = os.environ.get(
-    "SUPABASE_KEY",
-    "SUPABASE_ANON_KEY_REDACTED",
-)
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 
 STORAGE_BUCKET = "audio-recordings"
 
