@@ -1,79 +1,48 @@
-'use client'
+'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { supabase } from '@/lib/supabase'
-import type { Nurse } from '@/types/database'
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
-const STORAGE_KEY = 'attenda_nurse_id'
-
-interface AuthContextValue {
-  nurse: Nurse | null
-  loading: boolean
-  login: (employeeId: string, password: string) => Promise<void>
-  logout: () => void
+interface AuthContextType {
+  nurseName: string;
+  nurseInitials: string;
+  isAuthenticated: boolean;
+  login: (employeeId: string, password: string) => Promise<void>;
+  logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined)
+const AuthContext = createContext<AuthContextType>({
+  nurseName: '',
+  nurseInitials: '',
+  isAuthenticated: false,
+  login: async () => {},
+  logout: () => {},
+});
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [nurse, setNurse] = useState<Nurse | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [nurseName, setNurseName] = useState('Nurse Sarah J.');
+  const [nurseInitials, setNurseInitials] = useState('SJ');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-    const storedId = localStorage.getItem(STORAGE_KEY)
-    if (!storedId) {
-      setLoading(false)
-      return
-    }
+  const login = useCallback(async (_employeeId: string, _password: string) => {
+    // Stub: accept any credentials for now
+    setNurseName('Nurse Sarah J.');
+    setNurseInitials('SJ');
+    setIsAuthenticated(true);
+  }, []);
 
-    supabase
-      .from('nurses')
-      .select('*')
-      .eq('id', storedId)
-      .single()
-      .then(({ data, error }) => {
-        if (!error && data) {
-          setNurse(data as Nurse)
-        } else {
-          localStorage.removeItem(STORAGE_KEY)
-        }
-        setLoading(false)
-      })
-  }, [])
-
-  async function login(employeeId: string, password: string) {
-    const { data, error } = await supabase
-      .from('nurses')
-      .select('*')
-      .eq('employee_id', employeeId)
-      .eq('password_hash', password)
-      .single()
-
-    if (error || !data) {
-      throw new Error('Invalid credentials')
-    }
-
-    const nurseData = data as Nurse
-    localStorage.setItem(STORAGE_KEY, nurseData.id)
-    setNurse(nurseData)
-  }
-
-  function logout() {
-    localStorage.removeItem(STORAGE_KEY)
-    setNurse(null)
-  }
+  const logout = useCallback(() => {
+    setIsAuthenticated(false);
+    setNurseName('');
+    setNurseInitials('');
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ nurse, loading, login, logout }}>
+    <AuthContext.Provider value={{ nurseName, nurseInitials, isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return ctx
+  return useContext(AuthContext);
 }
