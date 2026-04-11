@@ -104,8 +104,11 @@ export default function DashboardHome() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-text-secondary text-sm">Loading...</p>
+      <div className="animate-pulse space-y-4 p-6">
+        <div className="h-24 bg-gray-200 rounded-2xl" />
+        <div className="h-8 bg-gray-200 rounded-lg w-1/3" />
+        <div className="h-32 bg-gray-200 rounded-2xl" />
+        <div className="h-32 bg-gray-200 rounded-2xl" />
       </div>
     )
   }
@@ -114,7 +117,7 @@ export default function DashboardHome() {
     <div className="flex flex-col h-full">
       <CurrentTaskBar currentTask={currentTask} onTap={handleCurrentTaskTap} />
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-[120px]">
         <RequestQueue
           requests={requests}
           onCardTap={handleCardTap}

@@ -56,3 +56,8 @@ body {
 .animate-slide-down {
   animation: slide-down 0.3s ease-out;
 }
+
+/* Prevent double-tap zoom on interactive elements */
+button, a, [role="button"] {
+  touch-action: manipulation;
+}

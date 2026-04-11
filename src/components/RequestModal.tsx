@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { Request } from '@/types/database'
 import { useToast } from '@/context/ToastContext'
 import AudioPlayer from '@/components/AudioPlayer'
@@ -43,6 +44,15 @@ export default function RequestModal({
   onPin,
 }: RequestModalProps) {
   const { showToast } = useToast()
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (!request) return
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [request])
 
   if (!request) return null
 
