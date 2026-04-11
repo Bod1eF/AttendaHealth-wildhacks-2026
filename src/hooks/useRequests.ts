@@ -108,7 +108,28 @@ export function useRequests(): UseRequestsReturn {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'requests' },
-        () => {
+        (payload) => {
+          const updated = payload.new as Record<string, unknown>;
+          // If only is_pinned or updated_at changed, skip full refetch
+          const old = payload.old as Record<string, unknown>;
+          if (
+            old &&
+            updated.status === old.status &&
+            updated.repeat_count === old.repeat_count &&
+            updated.accepted_at === old.accepted_at &&
+            updated.resolved_at === old.resolved_at
+          ) {
+            // Pin-only change — update in place
+            setRequests((prev) =>
+              prev.map((r) =>
+                r.id === updated.id ? { ...r, is_pinned: updated.is_pinned as boolean } : r
+              )
+            );
+            setCurrentTask((prev) =>
+              prev && prev.id === updated.id ? { ...prev, is_pinned: updated.is_pinned as boolean } : prev
+            );
+            return;
+          }
           fetchRequests();
         }
       )

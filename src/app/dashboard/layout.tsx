@@ -32,9 +32,9 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-bg-main flex flex-col">
+    <div className="relative h-full bg-bg-main flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/80 border-b border-white/20 px-4 py-3 flex items-center justify-between">
+      <header className="shrink-0 z-40 backdrop-blur-lg bg-white/80 border-b border-white/20 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-extrabold text-sm">
             {nurseInitials}
@@ -63,7 +63,7 @@ export default function DashboardLayout({
       </header>
 
       {/* Main content */}
-      <main className="flex-1 pb-28">
+      <main className="flex-1 min-h-0 overflow-hidden">
         {children}
       </main>
 

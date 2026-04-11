@@ -59,10 +59,10 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 rounded-tl-[40px] rounded-tr-[40px] backdrop-blur-lg bg-white/80 border-t border-white/20"
+      className="absolute bottom-0 left-0 right-0 z-50 rounded-tl-[40px] rounded-tr-[40px] backdrop-blur-lg bg-white/80 border-t border-white/20"
       style={{ boxShadow: '0px -10px 40px 0px rgba(83,42,168,0.08)' }}
     >
-      <div className="flex items-center justify-around px-4 pt-3 pb-[32px]">
+      <div className="flex items-center justify-around px-4 pt-3 pb-4">
         {tabs.map((tab) => {
           const active = isActive(tab.href);
           return (

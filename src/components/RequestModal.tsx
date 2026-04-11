@@ -30,7 +30,7 @@ function timeAgo(dateStr: string): string {
 function severityColor(severity: string): string {
   const s = severity.toLowerCase()
   if (s === 'critical' || s === 'high') return '#BA1A1A'
-  if (s === 'medium' || s === 'moderate') return '#E8810C'
+  if (s === 'medium' || s === 'moderate' || s === 'needs attention') return '#E8810C'
   return '#3A7D34'
 }
 
@@ -64,7 +64,7 @@ export default function RequestModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
       onClick={onClose}
     >
       {/* Backdrop */}
@@ -72,12 +72,12 @@ export default function RequestModal({
 
       {/* Modal */}
       <div
-        className="relative w-full max-w-[480px] bg-white rounded-t-[24px] overflow-y-auto animate-slide-up"
-        style={{ maxHeight: '80vh' }}
+        className="relative w-full max-w-[420px] bg-white rounded-[24px] overflow-y-auto animate-slide-up"
+        style={{ maxHeight: '85vh' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 pt-5 pb-4">
+        <div className="px-6 pt-5 pb-3">
           {/* Close button */}
           <button
             onClick={onClose}
@@ -100,64 +100,72 @@ export default function RequestModal({
           )}
 
           {/* Room + Bed title */}
-          <h2 className="text-[24px] font-extrabold mt-1">
+          <h2 className="text-[22px] font-extrabold mt-1">
             Room {roomLabel}, Bed {bedLabel}
           </h2>
 
           {/* Patient info */}
-          <p className="text-[13px] mt-1" style={{ color: '#7A7484' }}>
+          <p className="text-[12px] mt-1" style={{ color: '#7A7484' }}>
             Patient info available at bedside
           </p>
+        </div>
 
-          {/* Voice request transcript label */}
-          <div className="flex items-center justify-between mt-5">
-            <span
-              className="text-[10px] font-bold uppercase tracking-widest"
-              style={{ color: '#532AA8' }}
-            >
-              Voice Request Transcript
-            </span>
-            {latestEntry && (
-              <span className="text-[10px] font-medium uppercase tracking-wide" style={{ color: '#7A7484' }}>
-                Received {timeAgo(latestEntry.created_at)}
+        {/* Voice Request Transcript Container */}
+        <div className="px-6 pb-4">
+          <div className="rounded-2xl border border-[#CBC3D5]/30 bg-[#F8F5FA] p-4">
+            {/* Label row */}
+            <div className="flex items-center justify-between mb-3">
+              <span
+                className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: '#532AA8' }}
+              >
+                Voice Request
               </span>
-            )}
-          </div>
-        </div>
-
-        {/* Audio player section */}
-        <div className="px-6 pb-4">
-          <AudioPlayer audioUrl={latestEntry?.audio_url ?? null} />
-        </div>
-
-        {/* Transcript section */}
-        <div className="px-6 pb-4">
-          {sortedEntries.map((entry) => (
-            <div key={entry.id} className="mb-4 last:mb-0">
-              {entries.length > 1 && (
-                <span className="text-[10px] font-medium uppercase tracking-wide mb-1 block" style={{ color: '#7A7484' }}>
-                  {timeAgo(entry.created_at)}
+              {latestEntry && (
+                <span className="text-[10px] font-medium uppercase tracking-wide" style={{ color: '#7A7484' }}>
+                  {timeAgo(latestEntry.created_at)}
                 </span>
               )}
-              <p className="text-[14px] leading-relaxed" style={{ color: '#1D1B20' }}>
-                {entry.transcript}
-              </p>
             </div>
-          ))}
+
+            {/* Audio Player */}
+            <div className="mb-3">
+              <AudioPlayer audioUrl={latestEntry?.audio_url ?? null} />
+            </div>
+
+            {/* Transcript text — styled as quotation */}
+            <div className="border-l-[3px] border-[#532AA8]/30 pl-3">
+              {sortedEntries.map((entry) => (
+                <div key={entry.id} className="mb-3 last:mb-0">
+                  {entries.length > 1 && (
+                    <span className="text-[9px] font-medium uppercase tracking-wide mb-1 block" style={{ color: '#7A7484' }}>
+                      {timeAgo(entry.created_at)}
+                    </span>
+                  )}
+                  <p className="text-[13px] leading-relaxed italic text-[#3B3347]">
+                    &ldquo;{entry.transcript}&rdquo;
+                  </p>
+                </div>
+              ))}
+              {sortedEntries.length === 0 && (
+                <p className="text-[13px] italic text-[#7A7484]">No transcript available</p>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* AI Analysis section */}
         {latestEntry && (
           <div className="px-6 pb-4">
             <div
-              className="rounded-[16px] p-4"
-              style={{ backgroundColor: '#F8F5FA' }}
+              className="rounded-2xl p-4 border border-[#CBC3D5]/20"
+              style={{ backgroundColor: '#F0F3FF' }}
             >
               <span
                 className="text-[10px] font-bold uppercase tracking-widest block mb-3"
                 style={{ color: '#7A7484' }}
               >
-                AI Analysis Engine
+                AI Analysis
               </span>
 
               {/* Severity */}
@@ -186,9 +194,9 @@ export default function RequestModal({
           </div>
         )}
 
-        {/* Action buttons — sticky bottom */}
+        {/* Action buttons */}
         <div
-          className="sticky bottom-0 px-6 pt-3 pb-6 bg-white"
+          className="sticky bottom-0 px-6 pt-3 pb-6 bg-white rounded-b-[24px]"
           style={{ boxShadow: '0 -4px 12px rgba(0,0,0,0.05)' }}
         >
           <div className="flex gap-3">
@@ -235,22 +243,8 @@ export default function RequestModal({
               </button>
             )}
           </div>
-
-          {/* Full-width Mark Resolved below if current task */}
-          {isCurrentTask && (
-            <button
-              onClick={() => onAccept(request.id)}
-              className="w-full h-[48px] rounded-full text-[14px] font-bold text-white mt-3"
-              style={{
-                background: 'linear-gradient(135deg, #6D48B5, #532AA8)',
-              }}
-            >
-              On the Way
-            </button>
-          )}
         </div>
       </div>
-
     </div>
   )
 }

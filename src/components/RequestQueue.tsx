@@ -58,9 +58,9 @@ export default function RequestQueue({
   }, [highlightedRequestId])
 
   return (
-    <div className="flex flex-col h-full px-[24px] py-[16px]">
+    <div className="flex flex-col px-[24px] py-[12px]">
       {/* Header */}
-      <div className="pb-[16px]">
+      <div className="pb-[8px]">
         <div className="flex items-center justify-between">
           <h2 className="text-[16px] font-extrabold">Request Queue</h2>
           <div className="flex gap-[4px]">

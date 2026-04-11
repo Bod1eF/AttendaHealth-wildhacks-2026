@@ -30,23 +30,31 @@ function getBedState(
   return 'pending'
 }
 
-const bedStyles: Record<BedState, string> = {
-  none: 'bg-[#E7EEFF] text-[#7A7484]',
-  pending:
-    'border border-[rgba(83,42,168,0.3)] bg-[rgba(83,42,168,0.05)] text-[#532AA8]',
-  current:
-    'border-2 border-[#532AA8] bg-[rgba(83,42,168,0.1)] text-[#532AA8] font-extrabold',
-  critical:
-    'border border-[rgba(186,26,26,0.3)] bg-[rgba(186,26,26,0.1)] text-[#BA1A1A]',
+/** Short bed label like "1A", "2B" */
+function getBedShortLabel(bed: Bed, room: Room): string {
+  const roomNum = room.label.replace(/\D/g, '')
+  const bedLetter = bed.label.replace(/Bed\s*/i, '')
+  return `${roomNum}${bedLetter}`
 }
 
-function BedMarker({
+const bedBaseStyle = 'flex-1 flex items-center justify-center rounded-sm relative transition-all duration-200'
+
+const bedStyles: Record<BedState, string> = {
+  none: `${bedBaseStyle} bg-[#E8EDF8] text-[#6B7280] border border-[#D1D5DB]`,
+  pending: `${bedBaseStyle} bg-[rgba(83,42,168,0.08)] border-2 border-[rgba(83,42,168,0.4)] text-[#532AA8]`,
+  current: `${bedBaseStyle} bg-[rgba(83,42,168,0.15)] border-2 border-[#532AA8] text-[#532AA8]`,
+  critical: `${bedBaseStyle} bg-[rgba(186,26,26,0.12)] border-2 border-[rgba(186,26,26,0.5)] text-[#BA1A1A]`,
+}
+
+function BedCell({
   bed,
+  room,
   state,
   highlighted,
   onTap,
 }: {
   bed: Bed
+  room: Room
   state: BedState
   highlighted: boolean
   onTap: (bedId: number) => void
@@ -62,27 +70,32 @@ function BedMarker({
     setPulse(false)
   }, [highlighted])
 
+  const label = getBedShortLabel(bed, room)
+
   return (
     <button
       onClick={() => onTap(bed.id)}
-      className={`relative flex items-center justify-center w-[66px] h-full min-h-[48px] rounded-[12px] text-[10px] font-bold transition-transform duration-300 ${bedStyles[state]} ${pulse ? 'animate-pulse scale-105' : ''}`}
+      className={`${bedStyles[state]} ${pulse ? 'animate-pulse scale-105' : ''}`}
     >
-      {bed.label}
+      <span className={`text-[10px] ${state === 'current' ? 'font-extrabold' : 'font-bold'}`}>
+        {label}
+      </span>
 
-      {state === 'pending' && (
-        <span className="absolute top-1.5 right-1.5 w-[6px] h-[6px] rounded-full bg-[#532AA8]" />
-      )}
+      {/* State indicator — square corner markers matching Figma */}
       {state === 'current' && (
-        <span className="absolute top-1 right-1 w-[10px] h-[10px] rounded-full bg-[#532AA8] border-2 border-white" />
+        <div className="absolute top-0 right-0 w-2 h-2 bg-[#532AA8]" />
+      )}
+      {state === 'pending' && (
+        <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-[rgba(83,42,168,0.4)]" />
       )}
       {state === 'critical' && (
-        <span className="absolute top-1.5 right-1.5 w-[6px] h-[6px] rounded-full bg-[#BA1A1A]" />
+        <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-[#BA1A1A] animate-pulse" />
       )}
     </button>
   )
 }
 
-function RoomContainer({
+function RoomCell({
   room,
   beds,
   requests,
@@ -102,21 +115,22 @@ function RoomContainer({
   const roomBeds = beds.filter((b) => b.room_id === room.id)
 
   const label = (
-    <div className="bg-[#DEE8FF] rounded-[6px] py-1 px-2 text-center">
-      <span className="text-[8px] font-extrabold uppercase tracking-wide text-[#7A7484]">
+    <div className="h-3.5 flex items-center justify-center bg-[#C8D5EC] rounded-sm">
+      <span className="text-[8px] font-extrabold uppercase tracking-tight text-[#3B4252]">
         {room.label}
       </span>
     </div>
   )
 
   return (
-    <div className="flex-1 bg-[#F0F3FF] rounded-[32px] border border-[rgba(203,195,213,0.2)] p-[7px] flex flex-col gap-1.5">
+    <div className="flex-1 bg-white rounded-md border border-[#A8A0B4] flex flex-col p-1 gap-1 shadow-sm">
       {labelPosition === 'top' && label}
-      <div className="flex gap-[6px] flex-1">
+      <div className="flex gap-1 flex-1">
         {roomBeds.map((bed) => (
-          <BedMarker
+          <BedCell
             key={bed.id}
             bed={bed}
+            room={room}
             state={getBedState(bed.id, requests, currentTask)}
             highlighted={highlightedBedId === bed.id}
             onTap={onBedTap}
@@ -139,36 +153,39 @@ export default function FloorPlanMap({
   const currentBed = currentTask
     ? beds.find((b) => b.id === currentTask.bed_id)
     : null
+  const currentRoom = currentBed
+    ? rooms.find((r) => r.id === currentBed.room_id)
+    : null
 
   const topRooms = rooms.slice(0, 2)
   const bottomRooms = rooms.slice(2, 4)
 
+  const activeLabel =
+    currentBed && currentRoom
+      ? getBedShortLabel(currentBed, currentRoom)
+      : null
+
   return (
-    <section className="bg-[#F0F3FF] border-t border-[rgba(203,195,213,0.2)] px-[24px] pt-[25px] pb-[112px]">
+    <section className="bg-[#F0F3FF] border-t border-[rgba(203,195,213,0.1)] px-4 pt-2 pb-[88px]">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[16px] font-extrabold text-gray-900">
+      <div className="flex items-center justify-between mb-2 px-1">
+        <h2 className="text-[14px] font-extrabold text-gray-900">
           Unit 4B Floor Plan
         </h2>
-        {currentTask && currentBed && (
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#532AA8]" />
-            <span className="text-[10px] font-extrabold tracking-wide uppercase text-[#532AA8]">
-              ACTIVE: {currentBed.label}
-            </span>
+        {activeLabel && (
+          <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-[#532AA8] uppercase tracking-widest">
+            <span className="w-2 h-2 rounded-full bg-[#532AA8] animate-pulse" />
+            ACTIVE: {activeLabel}
           </div>
         )}
       </div>
 
-      {/* Map container */}
-      <div
-        className="relative bg-white rounded-[16px] border border-[rgba(203,195,213,0.2)] p-[13px] flex flex-col gap-[12px]"
-        style={{ boxShadow: 'inset 0px 2px 4px rgba(0,0,0,0.05)' }}
-      >
+      {/* Map container — architectural blueprint style */}
+      <div className="relative w-full h-40 bg-[#D8E0F0] rounded-lg p-2 flex flex-col gap-2 border border-[#B0B8CC]">
         {/* Top row */}
-        <div className="flex gap-[12px]">
+        <div className="flex-1 flex gap-2">
           {topRooms.map((room) => (
-            <RoomContainer
+            <RoomCell
               key={room.id}
               room={room}
               beds={beds}
@@ -182,16 +199,17 @@ export default function FloorPlanMap({
         </div>
 
         {/* Corridor */}
-        <div className="relative bg-[#E7EEFF] rounded-[24px] h-[12px] flex items-center justify-center border border-dashed border-[rgba(203,195,213,0.3)]">
-          <span className="text-[8px] font-extrabold uppercase tracking-widest text-[#A8A0B4]">
-            CORRIDOR 4B
+        <div className="h-6 flex items-center justify-center px-4 relative">
+          <div className="absolute inset-x-4 h-[1px] bg-[#9BA3B5]" />
+          <span className="text-[8px] font-extrabold uppercase tracking-wider text-[#5A6275] bg-[#D8E0F0] px-2 relative z-10 italic">
+            Main Corridor 4B
           </span>
         </div>
 
         {/* Bottom row */}
-        <div className="flex gap-[12px]">
+        <div className="flex-1 flex gap-2">
           {bottomRooms.map((room) => (
-            <RoomContainer
+            <RoomCell
               key={room.id}
               room={room}
               beds={beds}
@@ -204,16 +222,14 @@ export default function FloorPlanMap({
           ))}
         </div>
 
-        {/* Station indicator */}
+        {/* Nurse Station */}
         <div
-          className="absolute right-0 top-1/2 -translate-y-1/2 w-[16px] h-[56px] rounded-l-[8px] flex items-center justify-center"
-          style={{
-            background: 'linear-gradient(180deg, #7C3AED 0%, #532AA8 100%)',
-          }}
+          className="absolute right-0 top-1/2 -translate-y-1/2 h-14 w-3 rounded-l-md border-y border-l border-white/20 flex items-center justify-center shadow-lg"
+          style={{ background: 'linear-gradient(180deg, #6B46C1 0%, #532AA8 100%)' }}
         >
           <span
-            className="text-white text-[7px] font-extrabold tracking-wide"
-            style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+            className="text-white text-[6px] font-extrabold tracking-tight"
+            style={{ writingMode: 'vertical-lr' }}
           >
             STATION
           </span>

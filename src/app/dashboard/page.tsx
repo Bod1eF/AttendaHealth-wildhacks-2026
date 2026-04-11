@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useRequests } from '@/hooks/useRequests'
@@ -18,9 +18,22 @@ export default function DashboardHome() {
   const { requests, currentTask, loading: requestsLoading, refetch } = useRequests()
   const { rooms, beds, loading: roomsLoading } = useRooms()
 
-  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null)
+  // Store only the ID — derive the full object from the requests list
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null)
   const [highlightedBedId, setHighlightedBedId] = useState<number | null>(null)
   const [highlightedRequestId, setHighlightedRequestId] = useState<string | null>(null)
+
+  // Derive selected request from the list so it always has fresh data
+  const selectedRequest = useMemo(() => {
+    if (!selectedRequestId) return null
+    const all = currentTask ? [currentTask, ...requests] : requests
+    return all.find((r) => r.id === selectedRequestId) ?? null
+  }, [selectedRequestId, requests, currentTask])
+
+  const isCurrentTask = useMemo(
+    () => selectedRequest !== null && currentTask !== null && selectedRequest.id === currentTask.id,
+    [selectedRequest, currentTask]
+  )
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -43,20 +56,17 @@ export default function DashboardHome() {
     return () => clearTimeout(timer)
   }, [highlightedRequestId])
 
-  // CurrentTaskBar tap -> open modal for current task
   const handleCurrentTaskTap = useCallback((request: Request) => {
-    setSelectedRequest(request)
+    setSelectedRequestId(request.id)
   }, [])
 
-  // RequestQueue card tap -> open modal + highlight bed on map
   const handleCardTap = useCallback((request: Request) => {
-    setSelectedRequest(request)
+    setSelectedRequestId(request.id)
     if (request.bed_id) {
       setHighlightedBedId(request.bed_id)
     }
   }, [])
 
-  // FloorPlanMap bed tap -> highlight corresponding request card
   const handleBedTap = useCallback(
     (bedId: number) => {
       const request = requests.find((r) => r.bed_id === bedId)
@@ -67,11 +77,10 @@ export default function DashboardHome() {
     [requests]
   )
 
-  // Modal actions
   const handleAccept = useCallback(
     async (id: string) => {
       await acceptRequest(id)
-      setSelectedRequest(null)
+      setSelectedRequestId(null)
       refetch()
     },
     [refetch]
@@ -80,22 +89,22 @@ export default function DashboardHome() {
   const handleResolve = useCallback(
     async (id: string) => {
       await resolveRequest(id)
-      setSelectedRequest(null)
+      setSelectedRequestId(null)
       refetch()
     },
     [refetch]
   )
 
+  // Pin: fire-and-forget, no refetch — realtime handles the in-place update
   const handlePin = useCallback(
     async (id: string, isPinned: boolean) => {
       await togglePin(id, isPinned)
-      refetch()
     },
-    [refetch]
+    []
   )
 
   const handleCloseModal = useCallback(() => {
-    setSelectedRequest(null)
+    setSelectedRequestId(null)
   }, [])
 
   const loading = requestsLoading || roomsLoading
@@ -114,10 +123,10 @@ export default function DashboardHome() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       <CurrentTaskBar currentTask={currentTask} onTap={handleCurrentTaskTap} />
 
-      <div className="flex-1 overflow-y-auto pb-[120px]">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <RequestQueue
           requests={requests}
           onCardTap={handleCardTap}
@@ -125,22 +134,20 @@ export default function DashboardHome() {
         />
       </div>
 
-      <FloorPlanMap
-        rooms={rooms}
-        beds={beds}
-        requests={requests}
-        currentTask={currentTask}
-        onBedTap={handleBedTap}
-        highlightedBedId={highlightedBedId}
-      />
+      <div className="shrink-0">
+        <FloorPlanMap
+          rooms={rooms}
+          beds={beds}
+          requests={requests}
+          currentTask={currentTask}
+          onBedTap={handleBedTap}
+          highlightedBedId={highlightedBedId}
+        />
+      </div>
 
       <RequestModal
         request={selectedRequest}
-        isCurrentTask={
-          selectedRequest !== null &&
-          currentTask !== null &&
-          selectedRequest.id === currentTask.id
-        }
+        isCurrentTask={isCurrentTask}
         hasCurrentTask={currentTask !== null}
         onClose={handleCloseModal}
         onAccept={handleAccept}

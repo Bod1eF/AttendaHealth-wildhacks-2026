@@ -28,10 +28,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${manrope.variable} h-full antialiased`}>
-      <body className={`${manrope.className} min-h-full flex flex-col`}>
-        <AuthProvider>
-          <ToastProvider>{children}</ToastProvider>
-        </AuthProvider>
+      <body className={`${manrope.className} h-dvh overflow-hidden flex items-center justify-center bg-black`}>
+        <div className="relative w-full max-w-[430px] h-full bg-bg-main overflow-hidden">
+          <AuthProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </AuthProvider>
+        </div>
       </body>
     </html>
   );
