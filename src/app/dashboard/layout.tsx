@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import BottomNav from '@/components/BottomNav';
 
@@ -8,7 +10,26 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { nurseName, nurseInitials } = useAuth();
+  const router = useRouter();
+  const { nurse, nurseName, nurseInitials, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && !nurse) {
+      router.replace('/login');
+    }
+  }, [isLoading, nurse, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-bg-main">
+        <div className="animate-pulse text-text-muted text-sm">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!nurse) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-bg-main flex flex-col">

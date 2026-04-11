@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import type { Nurse } from '@/types/database';
 import { supabase } from '@/lib/supabase';
 
@@ -9,6 +9,7 @@ interface AuthContextType {
   nurseName: string;
   nurseInitials: string;
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (employeeId: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextType>({
   nurseName: '',
   nurseInitials: '',
   isAuthenticated: false,
+  isLoading: true,
   login: async () => {},
   logout: () => {},
 });
@@ -27,6 +29,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [nurseName, setNurseName] = useState('Nurse Sarah J.');
   const [nurseInitials, setNurseInitials] = useState('SJ');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Rehydrate auth state from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('auth_nurse');
+      if (stored) {
+        const nurseData: Nurse = JSON.parse(stored);
+        setNurse(nurseData);
+        setNurseName(nurseData.name);
+        const initials = nurseData.name
+          .split(' ')
+          .map((part) => part[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2);
+        setNurseInitials(initials);
+        setIsAuthenticated(true);
+      }
+    } catch {
+      localStorage.removeItem('auth_nurse');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const login = useCallback(async (employeeId: string, _password: string) => {
     // Look up nurse by employee_id from Supabase
@@ -52,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .slice(0, 2);
     setNurseInitials(initials);
     setIsAuthenticated(true);
+    localStorage.setItem('auth_nurse', JSON.stringify(nurseData));
   }, []);
 
   const logout = useCallback(() => {
@@ -59,10 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setNurse(null);
     setNurseName('');
     setNurseInitials('');
+    localStorage.removeItem('auth_nurse');
   }, []);
 
   return (
-    <AuthContext.Provider value={{ nurse, nurseName, nurseInitials, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ nurse, nurseName, nurseInitials, isAuthenticated, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
