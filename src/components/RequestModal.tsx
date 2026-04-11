@@ -1,6 +1,8 @@
 'use client'
 
 import { Request } from '@/types/database'
+import { useToast } from '@/context/ToastContext'
+import AudioPlayer from '@/components/AudioPlayer'
 
 interface RequestModalProps {
   request: Request | null
@@ -40,6 +42,8 @@ export default function RequestModal({
   onResolve,
   onPin,
 }: RequestModalProps) {
+  const { showToast } = useToast()
+
   if (!request) return null
 
   const roomLabel = request.bed?.room?.label || '?'
@@ -113,26 +117,7 @@ export default function RequestModal({
 
         {/* Audio player section */}
         <div className="px-6 pb-4">
-          <div className="flex items-center gap-4">
-            {/* Play button */}
-            <button
-              className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
-              style={{ backgroundColor: '#532AA8' }}
-            >
-              <svg width="18" height="20" viewBox="0 0 18 20" fill="none">
-                <path d="M2 1.5L16 10L2 18.5V1.5Z" fill="white" />
-              </svg>
-            </button>
-            {/* Progress bar + time */}
-            <div className="flex-1 flex flex-col gap-1.5">
-              <div className="h-[4px] rounded-full bg-[#E8E0F0] w-full">
-                <div className="h-full rounded-full bg-[#532AA8] w-0" />
-              </div>
-              <span className="text-[11px]" style={{ color: '#7A7484' }}>
-                0:00 / 0:00
-              </span>
-            </div>
-          </div>
+          <AudioPlayer audioUrl={latestEntry?.audio_url ?? null} />
         </div>
 
         {/* Transcript section */}
@@ -223,7 +208,7 @@ export default function RequestModal({
               <button
                 onClick={() => {
                   if (hasCurrentTask) {
-                    alert('You already have an active task. Please resolve it first.')
+                    showToast('You already have an active task. Please resolve it first.', 'error')
                     return
                   }
                   onAccept(request.id)

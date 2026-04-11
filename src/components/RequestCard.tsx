@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef, useState, useCallback } from 'react'
 import { Request } from '@/types/database'
 
 interface RequestCardProps {
@@ -18,7 +19,32 @@ function getTimeLabel(createdAt: string): string {
 }
 
 export default function RequestCard({ request, isActive = false, onTap }: RequestCardProps) {
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+
   const lastEntry = request.entries?.[request.entries.length - 1]
+  const audioUrl = lastEntry?.audio_url || null
+
+  const handlePlayToggle = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      if (!audioUrl) return
+
+      if (!audioRef.current) {
+        audioRef.current = new Audio(audioUrl)
+        audioRef.current.addEventListener('ended', () => setIsPlaying(false))
+      }
+
+      if (isPlaying) {
+        audioRef.current.pause()
+        setIsPlaying(false)
+      } else {
+        audioRef.current.play()
+        setIsPlaying(true)
+      }
+    },
+    [audioUrl, isPlaying]
+  )
   const title = lastEntry?.title || 'REQUEST'
   const transcript = lastEntry?.transcript || ''
   const category = lastEntry?.category || ''
@@ -87,6 +113,24 @@ export default function RequestCard({ request, isActive = false, onTap }: Reques
             className="flex items-center gap-1.5 rounded-full px-2.5 py-1 max-w-full"
             style={{ backgroundColor: '#F0F3FF' }}
           >
+            {audioUrl && (
+              <button
+                onClick={handlePlayToggle}
+                className="w-[20px] h-[20px] rounded-full flex items-center justify-center shrink-0"
+                style={{ backgroundColor: '#532AA8' }}
+              >
+                {isPlaying ? (
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                    <rect x="1" y="1" width="2" height="6" rx="0.5" fill="white" />
+                    <rect x="5" y="1" width="2" height="6" rx="0.5" fill="white" />
+                  </svg>
+                ) : (
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                    <path d="M2 1L7 4L2 7V1Z" fill="white" />
+                  </svg>
+                )}
+              </button>
+            )}
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
               <path
                 d="M2.5 5.5V9.5C2.5 10.0523 2.94772 10.5 3.5 10.5H4.5V13L7.5 10.5H11.5C12.0523 10.5 12.5 10.0523 12.5 9.5V5.5C12.5 4.94772 12.0523 4.5 11.5 4.5H3.5C2.94772 4.5 2.5 4.94772 2.5 5.5Z"
