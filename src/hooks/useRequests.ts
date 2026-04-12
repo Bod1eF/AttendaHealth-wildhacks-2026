@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getSupabase } from '@/lib/supabase';
 
 const supabase = getSupabase();
-import type { Request, Bed } from '@/types/database';
+import type { Request, Bed, Patient } from '@/types/database';
 import { useAuth } from '@/context/AuthContext';
 
 interface UseRequestsReturn {
@@ -63,7 +63,19 @@ export function useRequests(): UseRequestsReturn {
 
       if (requestsError) throw requestsError;
 
-      const allRequests = requestsData as Request[];
+      // Fetch patients for these beds
+      const { data: patientsData } = await supabase
+        .from('patients')
+        .select('*')
+        .in('bed_id', bedIds);
+
+      const patientByBedId = new Map((patientsData as Patient[] || []).map((p) => [p.bed_id, p]));
+
+      // Attach patient to each request
+      const allRequests = (requestsData as Request[]).map((r) => ({
+        ...r,
+        patient: patientByBedId.get(r.bed_id),
+      }));
 
       // Separate current task (on_the_way) from the rest
       const onTheWay = allRequests.find((r) => r.status === 'on_the_way') ?? null;

@@ -50,6 +50,10 @@ export default function RequestCard({ request, isActive = false, onTap }: Reques
   const category = lastEntry?.category || ''
   const severity = lastEntry?.severity || ''
   const bedLabel = request.bed?.label || '?'
+  const roomLabel = request.bed?.room?.label || '?'
+  const patientInitials = request.patient?.name
+    ? request.patient.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
+    : bedLabel
   const timeLabel = getTimeLabel(request.created_at)
 
   return (
@@ -81,7 +85,7 @@ export default function RequestCard({ request, isActive = false, onTap }: Reques
           className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
           style={{ backgroundColor: isActive ? '#E9DDFF' : '#DEE8FF' }}
         >
-          <span className="text-[12px] font-extrabold leading-none">{bedLabel}</span>
+          <span className="text-[12px] font-extrabold leading-none">{patientInitials}</span>
         </div>
         <span
           className="text-[9px] uppercase font-semibold tracking-wide"
@@ -93,15 +97,18 @@ export default function RequestCard({ request, isActive = false, onTap }: Reques
 
       {/* Right column */}
       <div className="flex-1 flex flex-col gap-[6px] min-w-0">
-        {/* Row 1: Title + pin + repeat badge */}
+        {/* Row 1: Title + location + pin + repeat badge */}
         <div className="flex items-center gap-2">
           {request.is_pinned && (
             <svg width="14" height="14" viewBox="0 0 24 24" fill="#532AA8" className="shrink-0">
               <path d="M16 2L20.8 6.8C21.6 7.6 21.2 9 20.1 9.3L18 9.8L14.4 13.4L14.8 18.2C14.9 19.3 13.7 20 12.8 19.4L9.5 17.2L5.7 21L4.3 19.6L8.1 15.8L5.6 12.2C5 11.3 5.7 10.1 6.8 10.2L11.6 10.6L15.2 7L15.7 4.9C16 3.8 17.4 3.4 18.2 4.2L16 2Z" />
             </svg>
           )}
-          <span className="text-[14px] font-extrabold uppercase tracking-tight leading-tight">
+          <span className="text-[14px] font-extrabold uppercase tracking-tight leading-tight truncate">
             {title}
+          </span>
+          <span className="text-[10px] text-[#7A7484] font-medium shrink-0">
+            {roomLabel} · {bedLabel}
           </span>
           {request.repeat_count > 1 && (
             <span

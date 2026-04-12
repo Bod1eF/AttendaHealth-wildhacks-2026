@@ -48,6 +48,7 @@ export interface Request {
   created_at: string
   updated_at: string
   bed?: Bed
+  patient?: Patient
   entries?: RequestEntry[]
 }
 
