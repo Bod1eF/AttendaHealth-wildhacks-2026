@@ -63,11 +63,15 @@ function BedCell({
 
   return (
     <button onClick={() => onTap(bed.id)} className={style}>
-      <span className={`text-[10px] ${state === "current" || selected ? "font-extrabold" : "font-bold"}`}>
+      <span
+        className={`text-[10px] ${state === "current" || selected ? "font-extrabold" : "font-bold"}`}
+      >
         {label}
       </span>
 
-      {state === "current" && <div className="absolute top-0 right-0 w-2 h-2 bg-white/50 rounded-bl-sm" />}
+      {state === "current" && (
+        <div className="absolute top-0 right-0 w-2 h-2 bg-white/50 rounded-bl-sm" />
+      )}
       {state === "pending" && !selected && (
         <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-[rgba(83,42,168,0.4)]" />
       )}
@@ -148,7 +152,7 @@ export default function FloorPlanMap({
       setSelectedBedId((prev) => (prev === bedId ? null : bedId));
       onBedTap(bedId);
     },
-    [onBedTap]
+    [onBedTap],
   );
 
   return (
@@ -157,9 +161,7 @@ export default function FloorPlanMap({
     >
       {/* Header */}
       <div className={`flex items-center justify-between px-1 ${minimized ? "mb-0" : "mb-2"}`}>
-        <h2 className="text-[14px] font-extrabold text-gray-900">
-          Northwestern Memorial Hospital - Ward 4B
-        </h2>
+        <h2 className="text-[14px] font-extrabold text-gray-900">NU Memorial Hospital - Ward 4B</h2>
         <div className="flex items-center gap-2">
           {activeLabel && (
             <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-[#532AA8] uppercase tracking-widest">
