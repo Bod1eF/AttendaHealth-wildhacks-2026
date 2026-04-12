@@ -20,9 +20,12 @@ export default function PatientPortal() {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
   const [elapsed, setElapsed] = useState(0)
+  const [fileName, setFileName] = useState<string | null>(null)
+  const [dragging, setDragging] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     const stored = localStorage.getItem('patient_session')
@@ -79,8 +82,30 @@ export default function PatientPortal() {
   const discardRecording = useCallback(() => {
     setAudioBlob(null)
     setAudioUrl(null)
+    setFileName(null)
     setElapsed(0)
   }, [])
+
+  const handleFileSelect = useCallback((file: File) => {
+    setAudioBlob(file)
+    setAudioUrl(URL.createObjectURL(file))
+    setFileName(file.name)
+    setSubmitted(false)
+    setError('')
+    setElapsed(0)
+  }, [])
+
+  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) handleFileSelect(file)
+  }, [handleFileSelect])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) handleFileSelect(file)
+  }, [handleFileSelect])
 
   const submitRequest = useCallback(async () => {
     if (!audioBlob || !patient) return
@@ -153,7 +178,7 @@ export default function PatientPortal() {
             How it works
           </span>
           <p className="text-[13px] text-[#3B3347] leading-relaxed">
-            Tap the record button and describe what you need. Your message will be sent to your nurse automatically.
+            Record a message or upload an audio file. Your request will be sent to your nurse automatically.
           </p>
         </div>
 
@@ -195,10 +220,49 @@ export default function PatientPortal() {
             {recording
               ? 'Recording... tap to stop'
               : audioBlob
-              ? 'Review your recording'
+              ? (fileName ? `File: ${fileName}` : 'Review your recording')
               : 'Tap to start recording'}
           </p>
         </div>
+
+        {/* File upload drop zone */}
+        {!audioBlob && !recording && (
+          <div className="w-full mb-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1 h-px bg-[#CBC3D5]/30" />
+              <span className="text-[11px] font-bold text-[#7A7484] uppercase">or upload a file</span>
+              <div className="flex-1 h-px bg-[#CBC3D5]/30" />
+            </div>
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`w-full rounded-2xl border-2 border-dashed p-6 flex flex-col items-center gap-2 cursor-pointer transition-all ${
+                dragging
+                  ? 'border-[#532AA8] bg-[rgba(83,42,168,0.05)]'
+                  : 'border-[#CBC3D5]/50 hover:border-[#532AA8]/40'
+              }`}
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#532AA8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <p className="text-[13px] font-medium text-[#3B3347]">
+                {dragging ? 'Drop file here' : 'Drag & drop or tap to browse'}
+              </p>
+              <p className="text-[10px] text-[#7A7484]">.m4a, .mp3, .mp4, .wav, .webm</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="audio/*,.m4a,.mp3,.mp4,.wav,.webm"
+                onChange={handleFileInput}
+                className="hidden"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Playback + actions */}
         {audioBlob && audioUrl && !submitted && (
