@@ -254,14 +254,19 @@ export default function RequestModal({
                 </div>
               )}
 
-              {/* Category pill */}
+              {/* Category pills */}
               {latestEntry.category && (
-                <span
-                  className="inline-block text-[11px] font-medium rounded-full px-3 py-1"
-                  style={{ backgroundColor: "rgba(109,72,181,0.1)", color: "#6D48B5" }}
-                >
-                  {latestEntry.category}
-                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {latestEntry.category.split(', ').map((cat) => (
+                    <span
+                      key={cat}
+                      className="inline-block text-[11px] font-medium rounded-full px-3 py-1"
+                      style={{ backgroundColor: "rgba(109,72,181,0.1)", color: "#6D48B5" }}
+                    >
+                      {cat.trim()}
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
           </div>

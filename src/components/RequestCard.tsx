@@ -158,14 +158,15 @@ export default function RequestCard({ request, isActive = false, onTap }: Reques
 
         {/* Row 3: Category and severity tags */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          {category && (
+          {category && category.split(', ').map((cat) => (
             <span
+              key={cat}
               className="text-[11px] font-medium rounded-full px-2 py-0.5"
               style={{ backgroundColor: 'rgba(109,72,181,0.1)', color: '#6D48B5' }}
             >
-              {category}
+              {cat.trim()}
             </span>
-          )}
+          ))}
           {severity && (
             <span
               className="text-[11px] font-medium rounded-full px-2 py-0.5"

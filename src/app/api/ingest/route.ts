@@ -29,7 +29,7 @@ Transcript: `
 
 const MULTI_PROMPT = `You are a hospital request classifier. A patient has made multiple requests. Given ALL of their transcripts below, produce a single unified JSON object that summarizes the overall situation:
 - "title": a short (2-4 word) overall problem statement that captures the combined requests
-- "category": the most relevant single category from: DIETARY, MEDICATION, RESTROOM ASSIST, PAIN REPORTED, EQUIPMENT, GENERAL
+- "categories": an array of ALL relevant categories that apply across the requests, from: DIETARY, MEDICATION, RESTROOM ASSIST, PAIN REPORTED, EQUIPMENT, GENERAL. Include every category that is relevant.
 - "severity": the HIGHEST severity across all requests from: STABLE, NEEDS ATTENTION, CRITICAL
 
 Respond ONLY with the JSON object, no other text.
@@ -144,31 +144,63 @@ export async function POST(req: NextRequest) {
       ? MULTI_PROMPT + allTranscripts.map((t, i) => `${i + 1}. "${t}"`).join('\n')
       : SINGLE_PROMPT + transcript
 
-    const geminiResponse = await genai.models.generateContent({
-      model: 'gemini-3.1-flash-lite-preview',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: 'object' as const,
-          properties: {
-            title: { type: 'string' as const },
-            category: { type: 'string' as const },
-            severity: { type: 'string' as const },
-          },
-          required: ['title', 'category', 'severity'],
-        },
-      },
-    })
-
     let classification: { title: string; category: string; severity: string }
-    try {
-      classification = JSON.parse(geminiResponse.text || '{}')
-    } catch {
-      classification = { title: 'PATIENT REQUEST', category: 'GENERAL', severity: 'NEEDS ATTENTION' }
+
+    if (isMulti) {
+      const geminiResponse = await genai.models.generateContent({
+        model: 'gemini-3.1-flash-lite-preview',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'object' as const,
+            properties: {
+              title: { type: 'string' as const },
+              categories: { type: 'array' as const, items: { type: 'string' as const } },
+              severity: { type: 'string' as const },
+            },
+            required: ['title', 'categories', 'severity'],
+          },
+        },
+      })
+
+      try {
+        const parsed = JSON.parse(geminiResponse.text || '{}')
+        const categories = Array.isArray(parsed.categories) ? parsed.categories : [parsed.categories || 'GENERAL']
+        classification = {
+          title: parsed.title || 'PATIENT REQUEST',
+          category: categories.join(', '),
+          severity: parsed.severity || 'NEEDS ATTENTION',
+        }
+      } catch {
+        classification = { title: 'PATIENT REQUEST', category: 'GENERAL', severity: 'NEEDS ATTENTION' }
+      }
+    } else {
+      const geminiResponse = await genai.models.generateContent({
+        model: 'gemini-3.1-flash-lite-preview',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'object' as const,
+            properties: {
+              title: { type: 'string' as const },
+              category: { type: 'string' as const },
+              severity: { type: 'string' as const },
+            },
+            required: ['title', 'category', 'severity'],
+          },
+        },
+      })
+
+      try {
+        classification = JSON.parse(geminiResponse.text || '{}')
+      } catch {
+        classification = { title: 'PATIENT REQUEST', category: 'GENERAL', severity: 'NEEDS ATTENTION' }
+      }
     }
 
-    // 6. Add new request entry with this entry's own classification
+    // 6. Add new request entry with classification
     await supabase.from('request_entries').insert({
       request_id: reqId,
       transcript,
