@@ -59,7 +59,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="absolute bottom-0 left-0 right-0 z-50 rounded-tl-[40px] rounded-tr-[40px] backdrop-blur-lg bg-white/80 border-t border-white/20"
+      className="absolute bottom-0 left-0 right-0 z-50 rounded-tl-[40px] rounded-tr-[40px] bg-white border-t border-[rgba(203,195,213,0.1)]"
       style={{ boxShadow: '0px -10px 40px 0px rgba(83,42,168,0.08)' }}
     >
       <div className="flex items-center justify-around px-4 pt-3 pb-4">

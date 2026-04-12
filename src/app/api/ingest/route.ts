@@ -18,7 +18,7 @@ function getGenAI() {
   return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
 }
 
-const CLASSIFICATION_PROMPT = `You are a hospital request classifier. Given a patient's voice transcript, produce a JSON object with these fields:
+const SINGLE_PROMPT = `You are a hospital request classifier. Given a patient's voice transcript, produce a JSON object with these fields:
 - "title": a short (2-4 word) problem statement, e.g. "IV Site Pain", "Need Food", "Restroom Assist"
 - "category": one of DIETARY, MEDICATION, RESTROOM ASSIST, PAIN REPORTED, EQUIPMENT, GENERAL
 - "severity": one of STABLE, NEEDS ATTENTION, CRITICAL
@@ -26,6 +26,16 @@ const CLASSIFICATION_PROMPT = `You are a hospital request classifier. Given a pa
 Respond ONLY with the JSON object, no other text.
 
 Transcript: `
+
+const MULTI_PROMPT = `You are a hospital request classifier. A patient has made multiple requests. Given ALL of their transcripts below, produce a single unified JSON object that summarizes the overall situation:
+- "title": a short (2-4 word) overall problem statement that captures the combined requests
+- "category": the most relevant single category from: DIETARY, MEDICATION, RESTROOM ASSIST, PAIN REPORTED, EQUIPMENT, GENERAL
+- "severity": the HIGHEST severity across all requests from: STABLE, NEEDS ATTENTION, CRITICAL
+
+Respond ONLY with the JSON object, no other text.
+
+Transcripts:
+`
 
 export async function POST(req: NextRequest) {
   try {
@@ -84,10 +94,59 @@ export async function POST(req: NextRequest) {
 
     const transcript = transcription.text || ''
 
-    // 4. Classify with Gemini
+    // 4. Check for existing pending request for this bed
+    const now = new Date().toISOString()
+
+    const { data: existing } = await supabase
+      .from('requests')
+      .select('*, entries:request_entries(*)')
+      .eq('bed_id', bedId)
+      .neq('status', 'resolved')
+
+    let reqId: string
+    let allTranscripts: string[]
+
+    if (existing?.length) {
+      // Existing request — collect all previous transcripts + the new one
+      reqId = existing[0].id
+      const prevTranscripts = (existing[0].entries || []).map((e: { transcript: string }) => e.transcript)
+      allTranscripts = [...prevTranscripts, transcript]
+
+      const newCount = (existing[0].repeat_count || 1) + 1
+      await supabase
+        .from('requests')
+        .update({ repeat_count: newCount, updated_at: now })
+        .eq('id', reqId)
+    } else {
+      // New request
+      const { data: newReq, error: insertError } = await supabase
+        .from('requests')
+        .insert({
+          bed_id: bedId,
+          status: 'pending',
+          repeat_count: 1,
+          created_at: now,
+          updated_at: now,
+        })
+        .select()
+        .single()
+
+      if (insertError || !newReq) {
+        return NextResponse.json({ error: 'Failed to create request' }, { status: 500 })
+      }
+      reqId = newReq.id
+      allTranscripts = [transcript]
+    }
+
+    // 5. Classify with Gemini — use multi-transcript prompt if multiple entries
+    const isMulti = allTranscripts.length > 1
+    const prompt = isMulti
+      ? MULTI_PROMPT + allTranscripts.map((t, i) => `${i + 1}. "${t}"`).join('\n')
+      : SINGLE_PROMPT + transcript
+
     const geminiResponse = await genai.models.generateContent({
       model: 'gemini-2.5-flash-lite',
-      contents: CLASSIFICATION_PROMPT + transcript,
+      contents: prompt,
       config: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -109,45 +168,7 @@ export async function POST(req: NextRequest) {
       classification = { title: 'PATIENT REQUEST', category: 'GENERAL', severity: 'NEEDS ATTENTION' }
     }
 
-    // 5. Insert request into Supabase
-    const now = new Date().toISOString()
-
-    // Check for existing pending request for this bed
-    const { data: existing } = await supabase
-      .from('requests')
-      .select('*')
-      .eq('bed_id', bedId)
-      .neq('status', 'resolved')
-
-    let reqId: string
-
-    if (existing?.length) {
-      reqId = existing[0].id
-      const newCount = (existing[0].repeat_count || 1) + 1
-      await supabase
-        .from('requests')
-        .update({ repeat_count: newCount, updated_at: now })
-        .eq('id', reqId)
-    } else {
-      const { data: newReq, error: insertError } = await supabase
-        .from('requests')
-        .insert({
-          bed_id: bedId,
-          status: 'pending',
-          repeat_count: 1,
-          created_at: now,
-          updated_at: now,
-        })
-        .select()
-        .single()
-
-      if (insertError || !newReq) {
-        return NextResponse.json({ error: 'Failed to create request' }, { status: 500 })
-      }
-      reqId = newReq.id
-    }
-
-    // Add request entry
+    // 6. Add new request entry with this entry's own classification
     await supabase.from('request_entries').insert({
       request_id: reqId,
       transcript,
@@ -157,6 +178,18 @@ export async function POST(req: NextRequest) {
       severity: classification.severity,
       created_at: now,
     })
+
+    // 7. If multiple entries, update ALL entries with the unified classification
+    if (isMulti) {
+      await supabase
+        .from('request_entries')
+        .update({
+          title: classification.title,
+          category: classification.category,
+          severity: classification.severity,
+        })
+        .eq('request_id', reqId)
+    }
 
     return NextResponse.json({
       success: true,
