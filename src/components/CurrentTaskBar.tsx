@@ -104,7 +104,7 @@ export default function CurrentTaskBar({ currentTask, onTap }: CurrentTaskBarPro
         {/* Center text */}
         <div className="flex-1 min-w-0">
           <p className="text-[10px] uppercase tracking-[1px] font-semibold text-white/70">
-            Room {roomLabel}, Bed {bedLabel}
+            {roomLabel}, {bedLabel}
           </p>
           <p className="text-white font-bold text-lg leading-tight truncate">
             {title}
