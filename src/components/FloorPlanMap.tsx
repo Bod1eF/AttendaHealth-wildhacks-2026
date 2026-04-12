@@ -24,7 +24,7 @@ function getBedState(bedId: number, requests: Request[], currentTask: Request | 
 
   return "pending";
 }
-
+//if have time pls implement admin panel
 /** Short bed label like "1A", "2B" */
 function getBedShortLabel(bed: Bed, room: Room): string {
   const roomNum = room.label.replace(/\D/g, "");

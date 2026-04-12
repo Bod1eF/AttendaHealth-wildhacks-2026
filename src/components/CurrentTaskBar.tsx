@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import type { Request } from '@/types/database';
+import {useEffect, useState} from 'react';
+import type {Request} from '@/types/database';
 
 interface CurrentTaskBarProps {
   currentTask: Request | null;
@@ -55,7 +55,7 @@ export default function CurrentTaskBar({ currentTask, onTap }: CurrentTaskBarPro
 
   return (
     <section className="bg-bg-queue px-5 pt-3 pb-4">
-      {/* Header row */}
+      {/*Header row*/}
       <div className="flex items-center justify-between mb-2">
         <span className="text-primary text-[10px] font-extrabold uppercase tracking-[1px]">
           CURRENT TASK
@@ -129,3 +129,5 @@ export default function CurrentTaskBar({ currentTask, onTap }: CurrentTaskBarPro
     </section>
   );
 }
+
+//
