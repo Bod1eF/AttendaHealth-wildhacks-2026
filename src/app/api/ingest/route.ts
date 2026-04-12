@@ -113,8 +113,8 @@ export async function POST(req: NextRequest) {
       try {
         const ttsAudio = await elevenlabs.textToSpeech.convert('JBFqnCBsd6RMkjVDRZzb', {
           text: translatedTranscript,
-          modelId: 'eleven_multilingual_v2',
-          outputFormat: 'mp3_44100_128',
+          model_id: 'eleven_multilingual_v2',
+          output_format: 'mp3_44100_128',
         })
 
         // Convert stream to buffer and upload
