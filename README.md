@@ -26,7 +26,7 @@ ELEVENLABS_API_KEY=your-elevenlabs-api-key
 - **Gemini API key:** get one free at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 - **ElevenLabs API key:** get one at [elevenlabs.io](https://elevenlabs.io) (free tier available)
 
-### 4. Run the app
+### 3. Run the app
 
 ```bash
 npm run dev
