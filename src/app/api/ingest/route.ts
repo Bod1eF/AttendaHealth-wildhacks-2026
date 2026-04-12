@@ -92,7 +92,23 @@ export async function POST(req: NextRequest) {
       model_id: 'scribe_v1',
     })
 
-    const transcript = transcription.text || ''
+    const originalTranscript = transcription.text || ''
+    const detectedLanguage = (transcription as unknown as { language_code?: string }).language_code || 'en'
+    const isEnglish = detectedLanguage.startsWith('en')
+
+    // Translate to English if not English, using Gemini
+    let translatedTranscript: string | null = null
+    let transcript = originalTranscript
+
+    if (!isEnglish && originalTranscript) {
+      const translationResponse = await genai.models.generateContent({
+        model: 'gemini-3.1-flash-lite-preview',
+        contents: `Translate the following text to English. Return ONLY the translated text, nothing else.\n\nText: ${originalTranscript}`,
+      })
+      translatedTranscript = translationResponse.text?.trim() || originalTranscript
+      // Use translated version for classification
+      transcript = translatedTranscript
+    }
 
     // 4. Check for existing pending request for this bed
     const now = new Date().toISOString()
@@ -204,6 +220,9 @@ export async function POST(req: NextRequest) {
     await supabase.from('request_entries').insert({
       request_id: reqId,
       transcript,
+      original_transcript: isEnglish ? null : originalTranscript,
+      translated_transcript: translatedTranscript,
+      language: detectedLanguage,
       audio_url: audioUrl,
       title: classification.title,
       category: classification.category,
@@ -229,6 +248,9 @@ export async function POST(req: NextRequest) {
       patient: patient.name,
       bed_id: bedId,
       transcript,
+      original_transcript: isEnglish ? null : originalTranscript,
+      translated_transcript: translatedTranscript,
+      language: detectedLanguage,
       classification,
       audio_url: audioUrl,
     })

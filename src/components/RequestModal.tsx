@@ -50,6 +50,7 @@ export default function RequestModal({
 
   const [patient, setPatient] = useState<Patient | null>(null);
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  const [showTranslated, setShowTranslated] = useState(true);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -189,10 +190,37 @@ export default function RequestModal({
               <AudioPlayer audioUrl={activeEntry?.audio_url ?? null} />
             </div>
 
+            {/* Language toggle — show if any entry is non-English */}
+            {sortedEntries.some((e) => e.language && !e.language.startsWith('en') && e.original_transcript) && (
+              <div className="flex rounded-lg bg-[#E7EEFF] p-0.5 mb-3">
+                <button
+                  onClick={() => setShowTranslated(true)}
+                  className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                    showTranslated ? 'bg-white text-[#532AA8] shadow-sm' : 'text-[#7A7484]'
+                  }`}
+                >
+                  English
+                </button>
+                <button
+                  onClick={() => setShowTranslated(false)}
+                  className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                    !showTranslated ? 'bg-white text-[#532AA8] shadow-sm' : 'text-[#7A7484]'
+                  }`}
+                >
+                  Original
+                </button>
+              </div>
+            )}
+
             {/* Transcript list — tap to select */}
             <div className="space-y-2">
               {sortedEntries.map((entry) => {
                 const isActive = activeEntry?.id === entry.id
+                const isNonEnglish = entry.language && !entry.language.startsWith('en') && entry.original_transcript
+                const displayText = isNonEnglish
+                  ? (showTranslated ? (entry.translated_transcript || entry.transcript) : entry.original_transcript!)
+                  : entry.transcript
+
                 return (
                   <button
                     key={entry.id}
@@ -203,16 +231,23 @@ export default function RequestModal({
                         : 'border-transparent hover:bg-white/50'
                     }`}
                   >
-                    {entries.length > 1 && (
-                      <span
-                        className="text-[9px] font-medium uppercase tracking-wide mb-1 block"
-                        style={{ color: isActive ? '#532AA8' : '#7A7484' }}
-                      >
-                        {timeAgo(entry.created_at)}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2 mb-1">
+                      {entries.length > 1 && (
+                        <span
+                          className="text-[9px] font-medium uppercase tracking-wide"
+                          style={{ color: isActive ? '#532AA8' : '#7A7484' }}
+                        >
+                          {timeAgo(entry.created_at)}
+                        </span>
+                      )}
+                      {isNonEnglish && (
+                        <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-[#E7EEFF] text-[#532AA8]">
+                          {entry.language.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
                     <p className={`text-[13px] leading-relaxed italic ${isActive ? 'text-[#532AA8]' : 'text-[#3B3347]'}`}>
-                      &ldquo;{entry.transcript}&rdquo;
+                      &ldquo;{displayText}&rdquo;
                     </p>
                   </button>
                 )
