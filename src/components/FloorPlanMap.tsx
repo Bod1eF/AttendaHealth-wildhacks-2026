@@ -168,9 +168,9 @@ export default function FloorPlanMap({
   const [minimized, setMinimized] = useState(false)
 
   return (
-    <section className="bg-[#F0F3FF] border-t border-[rgba(203,195,213,0.1)] px-4 pt-2 pb-[108px]">
+    <section className={`bg-[#F0F3FF] border-t border-[rgba(203,195,213,0.1)] px-4 pt-2 ${minimized ? 'pb-[88px]' : 'pb-[108px]'}`}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-2 px-1">
+      <div className={`flex items-center justify-between px-1 ${minimized ? 'mb-0' : 'mb-2'}`}>
         <h2 className="text-[14px] font-extrabold text-gray-900">
           Unit 4B Floor Plan
         </h2>
