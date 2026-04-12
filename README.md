@@ -16,7 +16,7 @@ We used Claude Code as our primary development tool to rapidly build Attenda fro
 2. Make sure **Nurse Login** is selected
 3. Log in with:
    - **Employee ID:** `NRS-001`
-   - **Password:** anything
+   - **Password:** password123
 4. You'll see the dashboard with the request queue, floor plan, and navigation
 
 ### Try it as a Patient
