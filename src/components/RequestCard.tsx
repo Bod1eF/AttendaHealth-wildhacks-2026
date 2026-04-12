@@ -148,15 +148,6 @@ export default function RequestCard({ request, isActive = false, onTap }: Reques
                 )}
               </button>
             )}
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-              <path
-                d="M2.5 5.5V9.5C2.5 10.0523 2.94772 10.5 3.5 10.5H4.5V13L7.5 10.5H11.5C12.0523 10.5 12.5 10.0523 12.5 9.5V5.5C12.5 4.94772 12.0523 4.5 11.5 4.5H3.5C2.94772 4.5 2.5 4.94772 2.5 5.5Z"
-                stroke="#7A7484"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
             <span className="text-[12px] truncate" style={{ color: '#7A7484' }}>
               {transcript}
             </span>

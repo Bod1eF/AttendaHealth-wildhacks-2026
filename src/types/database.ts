@@ -27,6 +27,7 @@ export interface Nurse {
 export interface Patient {
   id: string
   name: string
+  patient_id: string
   bed_id: number
   age: number | null
   sex: string | null
