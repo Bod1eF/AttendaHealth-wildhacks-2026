@@ -9,7 +9,6 @@ interface FloorPlanMapProps {
   requests: Request[]
   currentTask: Request | null
   onBedTap: (bedId: number) => void
-  highlightedBedId: number | null
 }
 
 type BedState = 'none' | 'pending' | 'current' | 'critical'
@@ -42,50 +41,44 @@ const bedBaseStyle = 'flex-1 flex items-center justify-center rounded-sm relativ
 const bedStyles: Record<BedState, string> = {
   none: `${bedBaseStyle} bg-[#E8EDF8] text-[#6B7280] border border-[#D1D5DB]`,
   pending: `${bedBaseStyle} bg-[rgba(83,42,168,0.08)] border-2 border-[rgba(83,42,168,0.4)] text-[#532AA8]`,
-  current: `${bedBaseStyle} bg-[rgba(83,42,168,0.15)] border-2 border-[#532AA8] text-[#532AA8]`,
+  current: `${bedBaseStyle} bg-[#532AA8] text-white border-2 border-[#532AA8]`,
   critical: `${bedBaseStyle} bg-[rgba(186,26,26,0.12)] border-2 border-[rgba(186,26,26,0.5)] text-[#BA1A1A]`,
 }
+
+const selectedBedStyle = `${bedBaseStyle} bg-[rgba(83,42,168,0.25)] border-2 border-[#532AA8] text-[#532AA8]`
 
 function BedCell({
   bed,
   room,
   state,
-  highlighted,
+  selected,
   onTap,
 }: {
   bed: Bed
   room: Room
   state: BedState
-  highlighted: boolean
+  selected: boolean
   onTap: (bedId: number) => void
 }) {
-  const [pulse, setPulse] = useState(false)
-
-  useEffect(() => {
-    if (highlighted) {
-      setPulse(true)
-      const timer = setTimeout(() => setPulse(false), 2000)
-      return () => clearTimeout(timer)
-    }
-    setPulse(false)
-  }, [highlighted])
-
   const label = getBedShortLabel(bed, room)
+
+  // Selected overrides default state style (but not current/on-the-way)
+  const style = selected && state !== 'current' ? selectedBedStyle : bedStyles[state]
 
   return (
     <button
       onClick={() => onTap(bed.id)}
-      className={`${bedStyles[state]} ${pulse ? 'animate-pulse scale-105' : ''}`}
+      className={style}
     >
-      <span className={`text-[10px] ${state === 'current' ? 'font-extrabold' : 'font-bold'}`}>
+      <span className={`text-[10px] ${state === 'current' || selected ? 'font-extrabold' : 'font-bold'}`}>
         {label}
       </span>
 
-      {/* State indicator — square corner markers matching Figma */}
+      {/* State indicator — square corner markers */}
       {state === 'current' && (
-        <div className="absolute top-0 right-0 w-2 h-2 bg-[#532AA8]" />
+        <div className="absolute top-0 right-0 w-2 h-2 bg-white/50 rounded-bl-sm" />
       )}
-      {state === 'pending' && (
+      {state === 'pending' && !selected && (
         <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-[rgba(83,42,168,0.4)]" />
       )}
       {state === 'critical' && (
@@ -100,7 +93,7 @@ function RoomCell({
   beds,
   requests,
   currentTask,
-  highlightedBedId,
+  selectedBedId,
   onBedTap,
   labelPosition,
 }: {
@@ -108,7 +101,7 @@ function RoomCell({
   beds: Bed[]
   requests: Request[]
   currentTask: Request | null
-  highlightedBedId: number | null
+  selectedBedId: number | null
   onBedTap: (bedId: number) => void
   labelPosition: 'top' | 'bottom'
 }) {
@@ -132,7 +125,7 @@ function RoomCell({
             bed={bed}
             room={room}
             state={getBedState(bed.id, requests, currentTask)}
-            highlighted={highlightedBedId === bed.id}
+            selected={selectedBedId === bed.id}
             onTap={onBedTap}
           />
         ))}
@@ -148,7 +141,6 @@ export default function FloorPlanMap({
   requests,
   currentTask,
   onBedTap,
-  highlightedBedId,
 }: FloorPlanMapProps) {
   const currentBed = currentTask
     ? beds.find((b) => b.id === currentTask.bed_id)
@@ -166,6 +158,12 @@ export default function FloorPlanMap({
       : null
 
   const [minimized, setMinimized] = useState(false)
+  const [selectedBedId, setSelectedBedId] = useState<number | null>(null)
+
+  const handleBedTap = useCallback((bedId: number) => {
+    setSelectedBedId((prev) => (prev === bedId ? null : bedId))
+    onBedTap(bedId)
+  }, [onBedTap])
 
   return (
     <section className={`bg-[#F0F3FF] border-t border-[rgba(203,195,213,0.1)] px-4 pt-2 ${minimized ? 'pb-[88px]' : 'pb-[108px]'}`}>
@@ -213,8 +211,8 @@ export default function FloorPlanMap({
               beds={beds}
               requests={requests}
               currentTask={currentTask}
-              highlightedBedId={highlightedBedId}
-              onBedTap={onBedTap}
+              selectedBedId={selectedBedId}
+              onBedTap={handleBedTap}
               labelPosition="bottom"
             />
           ))}
@@ -237,8 +235,8 @@ export default function FloorPlanMap({
               beds={beds}
               requests={requests}
               currentTask={currentTask}
-              highlightedBedId={highlightedBedId}
-              onBedTap={onBedTap}
+              selectedBedId={selectedBedId}
+              onBedTap={handleBedTap}
               labelPosition="top"
             />
           ))}

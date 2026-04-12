@@ -44,9 +44,11 @@ export default function RequestQueue({
 
   // When parent sets a new highlightedRequestId, scroll to it and activate highlight
   useEffect(() => {
-    if (!highlightedRequestId) return
+    if (!highlightedRequestId) {
+      setActiveHighlight(null)
+      return
+    }
 
-    // Strip counter suffix (e.g. "uuid::3" -> "uuid")
     const requestId = highlightedRequestId.split('::')[0]
 
     const el = cardRefs.current.get(requestId)
@@ -55,12 +57,6 @@ export default function RequestQueue({
     }
 
     setActiveHighlight(requestId)
-
-    const timeout = setTimeout(() => {
-      setActiveHighlight(null)
-    }, 1500)
-
-    return () => clearTimeout(timeout)
   }, [highlightedRequestId])
 
   return (
