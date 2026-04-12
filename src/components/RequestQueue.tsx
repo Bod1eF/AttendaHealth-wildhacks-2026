@@ -16,6 +16,7 @@ export default function RequestQueue({
   highlightedRequestId,
 }: RequestQueueProps) {
   const [filter, setFilter] = useState<'all' | 'critical'>('all')
+  const [activeHighlight, setActiveHighlight] = useState<string | null>(null)
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
   const getLatestSeverity = (request: Request): string => {
@@ -41,18 +42,23 @@ export default function RequestQueue({
     }
   }, [])
 
+  // When parent sets a new highlightedRequestId, scroll to it and activate highlight
   useEffect(() => {
     if (!highlightedRequestId) return
 
-    const el = cardRefs.current.get(highlightedRequestId)
-    if (!el) return
+    // Strip counter suffix (e.g. "uuid::3" -> "uuid")
+    const requestId = highlightedRequestId.split('::')[0]
 
-    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    el.classList.add('ring-highlight')
+    const el = cardRefs.current.get(requestId)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+
+    setActiveHighlight(requestId)
 
     const timeout = setTimeout(() => {
-      el.classList.remove('ring-highlight')
-    }, 2000)
+      setActiveHighlight(null)
+    }, 1500)
 
     return () => clearTimeout(timeout)
   }, [highlightedRequestId])
@@ -89,38 +95,30 @@ export default function RequestQueue({
       </div>
 
       {/* Scrollable list */}
-      <div className="overflow-y-auto flex-1 space-y-3">
-        {filteredRequests.map((request, index) => (
-          <div
-            key={request.id}
-            ref={(el) => setCardRef(request.id, el)}
-            className="transition-all duration-300"
-          >
-            <RequestCard
-              request={request}
-              isActive={false}
-              onTap={() => onCardTap(request)}
-            />
-          </div>
-        ))}
+      <div className="overflow-y-auto flex-1 space-y-3 p-2">
+        {filteredRequests.map((request) => {
+          const isHighlighted = activeHighlight === request.id
+          return (
+            <div
+              key={request.id}
+              ref={(el) => setCardRef(request.id, el)}
+              className="rounded-[16px]"
+              style={{
+                boxShadow: isHighlighted
+                  ? '0 0 0 3px #532AA8, 0 0 16px rgba(83,42,168,0.3)'
+                  : '0 0 0 0px transparent, 0 0 0px transparent',
+                transition: 'box-shadow 0.8s ease-out',
+              }}
+            >
+              <RequestCard
+                request={request}
+                isActive={false}
+                onTap={() => onCardTap(request)}
+              />
+            </div>
+          )
+        })}
       </div>
-
-      <style jsx>{`
-        .ring-highlight {
-          animation: highlightRing 2s ease-out;
-        }
-        @keyframes highlightRing {
-          0% {
-            box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.5);
-          }
-          20% {
-            box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.4);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(147, 51, 234, 0);
-          }
-        }
-      `}</style>
     </div>
   )
 }

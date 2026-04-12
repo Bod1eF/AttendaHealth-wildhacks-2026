@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useRequests } from '@/hooks/useRequests'
@@ -22,6 +22,7 @@ export default function DashboardHome() {
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null)
   const [highlightedBedId, setHighlightedBedId] = useState<number | null>(null)
   const [highlightedRequestId, setHighlightedRequestId] = useState<string | null>(null)
+  const highlightCounter = useRef(0)
 
   // Derive selected request from the list so it always has fresh data
   const selectedRequest = useMemo(() => {
@@ -49,12 +50,6 @@ export default function DashboardHome() {
     return () => clearTimeout(timer)
   }, [highlightedBedId])
 
-  // Auto-clear highlighted request after 2s
-  useEffect(() => {
-    if (highlightedRequestId === null) return
-    const timer = setTimeout(() => setHighlightedRequestId(null), 2000)
-    return () => clearTimeout(timer)
-  }, [highlightedRequestId])
 
   const handleCurrentTaskTap = useCallback((request: Request) => {
     setSelectedRequestId(request.id)
@@ -71,7 +66,9 @@ export default function DashboardHome() {
     (bedId: number) => {
       const request = requests.find((r) => r.bed_id === bedId)
       if (request) {
-        setHighlightedRequestId(request.id)
+        // Use counter suffix to force React to see a new value every time
+        highlightCounter.current += 1
+        setHighlightedRequestId(`${request.id}::${highlightCounter.current}`)
       }
     },
     [requests]

@@ -37,7 +37,7 @@ function getBedShortLabel(bed: Bed, room: Room): string {
   return `${roomNum}${bedLetter}`
 }
 
-const bedBaseStyle = 'flex-1 flex items-center justify-center rounded-sm relative transition-all duration-200'
+const bedBaseStyle = 'flex-1 flex items-center justify-center rounded-sm relative transition-all duration-200 min-h-[36px] cursor-pointer'
 
 const bedStyles: Record<BedState, string> = {
   none: `${bedBaseStyle} bg-[#E8EDF8] text-[#6B7280] border border-[#D1D5DB]`,
@@ -181,7 +181,7 @@ export default function FloorPlanMap({
       </div>
 
       {/* Map container — architectural blueprint style */}
-      <div className="relative w-full h-40 bg-[#D8E0F0] rounded-lg p-2 flex flex-col gap-2 border border-[#B0B8CC]">
+      <div className="relative w-full h-48 bg-[#D8E0F0] rounded-lg p-2 flex flex-col gap-1.5 border border-[#B0B8CC]">
         {/* Top row */}
         <div className="flex-1 flex gap-2">
           {topRooms.map((room) => (
@@ -199,7 +199,7 @@ export default function FloorPlanMap({
         </div>
 
         {/* Corridor */}
-        <div className="h-6 flex items-center justify-center px-4 relative">
+        <div className="h-5 flex items-center justify-center px-4 relative shrink-0">
           <div className="absolute inset-x-4 h-[1px] bg-[#9BA3B5]" />
           <span className="text-[8px] font-extrabold uppercase tracking-wider text-[#5A6275] bg-[#D8E0F0] px-2 relative z-10 italic">
             Main Corridor 4B
