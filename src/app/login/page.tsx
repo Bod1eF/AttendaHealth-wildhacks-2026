@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [employeeId, setEmployeeId] = useState('')
   const [password, setPassword] = useState('')
   const [patientName, setPatientName] = useState('')
+  const [patientList, setPatientList] = useState<{ id: string; name: string }[]>([])
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -22,6 +23,18 @@ export default function LoginPage() {
       router.replace('/dashboard')
     }
   }, [isLoading, isAuthenticated, router])
+
+  // Fetch patient list when patient mode is selected
+  useEffect(() => {
+    if (mode !== 'patient') return
+    supabase
+      .from('patients')
+      .select('id, name')
+      .order('name')
+      .then(({ data }) => {
+        if (data) setPatientList(data)
+      })
+  }, [mode])
 
   async function handleNurseSubmit(e: FormEvent) {
     e.preventDefault()
@@ -159,17 +172,20 @@ export default function LoginPage() {
           <form onSubmit={handlePatientSubmit} className="space-y-5">
             <div className="space-y-1.5">
               <label htmlFor="patient-name" className="block text-xs font-semibold uppercase tracking-wider text-text-secondary">
-                Patient Name
+                Select Patient
               </label>
-              <input
+              <select
                 id="patient-name"
-                type="text"
                 value={patientName}
                 onChange={(e) => setPatientName(e.target.value)}
-                placeholder="e.g. Robert Chen"
                 required
-                className="w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm text-text-primary placeholder:text-text-muted/50 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
-              />
+                className="w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm text-text-primary outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition appearance-none"
+              >
+                <option value="" disabled>Choose your name...</option>
+                {patientList.map((p) => (
+                  <option key={p.id} value={p.name}>{p.name}</option>
+                ))}
+              </select>
             </div>
 
             <button
