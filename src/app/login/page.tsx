@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [employeeId, setEmployeeId] = useState('')
   const [password, setPassword] = useState('')
   const [patientId, setPatientId] = useState('')
+  const [patientPassword, setPatientPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -57,6 +58,12 @@ export default function LoginPage() {
       }
 
       const patient = data[0]
+
+      if (patient.password_hash !== patientPassword) {
+        setError('Incorrect password. Please try again.')
+        setSubmitting(false)
+        return
+      }
       localStorage.setItem('patient_session', JSON.stringify(patient))
       router.push('/patient')
     } catch {
@@ -168,6 +175,21 @@ export default function LoginPage() {
                 value={patientId}
                 onChange={(e) => setPatientId(e.target.value)}
                 placeholder="PT-XXXX"
+                required
+                className="w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm text-text-primary placeholder:text-text-muted/50 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="patient-password" className="block text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                Password
+              </label>
+              <input
+                id="patient-password"
+                type="password"
+                value={patientPassword}
+                onChange={(e) => setPatientPassword(e.target.value)}
+                placeholder="Enter password"
                 required
                 className="w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm text-text-primary placeholder:text-text-muted/50 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
               />
