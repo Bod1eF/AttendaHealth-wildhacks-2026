@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useRequests } from '@/hooks/useRequests'
@@ -21,6 +21,7 @@ export default function DashboardHome() {
   // Store only the ID — derive the full object from the requests list
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null)
   const [highlightedRequestId, setHighlightedRequestId] = useState<string | null>(null)
+  const highlightCounter = useRef(0)
 
   // Derive selected request from the list so it always has fresh data
   const selectedRequest = useMemo(() => {
@@ -53,10 +54,12 @@ export default function DashboardHome() {
     (bedId: number) => {
       const request = requests.find((r) => r.bed_id === bedId)
       if (request) {
-        // Toggle: if same request is highlighted, clear it; otherwise set it
         setHighlightedRequestId((prev) => {
           const prevId = prev?.split('::')[0]
-          return prevId === request.id ? null : request.id
+          if (prevId === request.id) return null
+          // Always use a unique suffix so the effect re-fires
+          highlightCounter.current += 1
+          return `${request.id}::${highlightCounter.current}`
         })
       } else {
         setHighlightedRequestId(null)
