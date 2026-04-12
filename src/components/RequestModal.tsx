@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
-import { Request } from "@/types/database";
+import { useEffect, useState } from "react";
+import { Request, Patient } from "@/types/database";
+import { getSupabase } from "@/lib/supabase";
 import { useToast } from "@/context/ToastContext";
 import AudioPlayer from "@/components/AudioPlayer";
+
+const supabase = getSupabase();
 
 interface RequestModalProps {
   request: Request | null;
@@ -45,6 +48,8 @@ export default function RequestModal({
 }: RequestModalProps) {
   const { showToast } = useToast();
 
+  const [patient, setPatient] = useState<Patient | null>(null);
+
   // Lock body scroll when modal is open
   useEffect(() => {
     if (!request) return;
@@ -52,6 +57,20 @@ export default function RequestModal({
     return () => {
       document.body.style.overflow = "";
     };
+  }, [request]);
+
+  // Fetch patient for this bed
+  useEffect(() => {
+    if (!request) {
+      setPatient(null);
+      return;
+    }
+    supabase
+      .from("patients")
+      .select("*")
+      .eq("bed_id", request.bed_id)
+      .single()
+      .then(({ data }) => setPatient(data as Patient | null));
   }, [request]);
 
   if (!request) return null;
@@ -106,10 +125,31 @@ export default function RequestModal({
             {roomLabel}, {bedLabel}
           </h2>
 
-          {/* Patient info */}
-          <p className="text-[12px] mt-1" style={{ color: "#7A7484" }}>
-            Patient info available at bedside
-          </p>
+          {/* Patient info summary */}
+          {patient ? (
+            <div className="flex items-center gap-3 mt-2">
+              <p className="text-[13px] font-semibold text-gray-900">{patient.name}</p>
+              <span className="text-[11px] text-[#7A7484]">
+                {patient.age ? `${patient.age}${patient.sex ? `/${patient.sex[0]}` : ''}` : ''}
+                {patient.blood_type ? ` · ${patient.blood_type}` : ''}
+              </span>
+            </div>
+          ) : (
+            <p className="text-[12px] mt-1" style={{ color: "#7A7484" }}>
+              Patient info available at bedside
+            </p>
+          )}
+
+          {/* Allergies warning */}
+          {patient?.allergies && patient.allergies.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {patient.allergies.map((a) => (
+                <span key={a} className="px-2 py-0.5 bg-[#FFDAD6] text-[#93000A] text-[10px] font-bold rounded-full">
+                  ⚠ {a}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Voice Request Transcript Container */}

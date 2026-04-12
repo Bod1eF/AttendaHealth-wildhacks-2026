@@ -28,6 +28,12 @@ export interface Patient {
   id: string
   name: string
   bed_id: number
+  age: number | null
+  sex: string | null
+  blood_type: string | null
+  diagnosis: string | null
+  allergies: string[] | null
+  emergency_contact: string | null
   created_at: string
 }
 
