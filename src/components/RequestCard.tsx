@@ -158,27 +158,15 @@ export default function RequestCard({ request, isActive = false, onTap }: Reques
 
         {/* Row 3: Category and severity tags */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          {category && (() => {
-            const cats = category.split(', ')
-            const shown = cats.slice(0, 3)
-            const extra = cats.length - 3
-            return (
-              <>
-                {shown.map((cat) => (
-                  <span
-                    key={cat}
-                    className="text-[11px] font-medium rounded-full px-2 py-0.5"
-                    style={{ backgroundColor: 'rgba(109,72,181,0.1)', color: '#6D48B5' }}
-                  >
-                    {cat.trim()}
-                  </span>
-                ))}
-                {extra > 0 && (
-                  <span className="text-[11px] font-medium text-[#6D48B5]">+{extra}</span>
-                )}
-              </>
-            )
-          })()}
+          {category && category.split(', ').map((cat) => (
+            <span
+              key={cat}
+              className="text-[11px] font-medium rounded-full px-2 py-0.5"
+              style={{ backgroundColor: 'rgba(109,72,181,0.1)', color: '#6D48B5' }}
+            >
+              {cat.trim()}
+            </span>
+          ))}
           {severity && (
             <span
               className="text-[11px] font-medium rounded-full px-2 py-0.5"
