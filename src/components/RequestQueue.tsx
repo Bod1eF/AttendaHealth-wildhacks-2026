@@ -98,7 +98,7 @@ export default function RequestQueue({
           >
             <RequestCard
               request={request}
-              isActive={index === 0}
+              isActive={false}
               onTap={() => onCardTap(request)}
             />
           </div>
