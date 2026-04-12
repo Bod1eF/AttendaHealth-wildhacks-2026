@@ -133,12 +133,19 @@ export function useRequests(): UseRequestsReturn {
             updated.accepted_at === old.accepted_at &&
             updated.resolved_at === old.resolved_at
           ) {
-            // Pin-only change — update in place
-            setRequests((prev) =>
-              prev.map((r) =>
+            // Pin-only change — update in place and re-sort
+            setRequests((prev) => {
+              const updated_list = prev.map((r) =>
                 r.id === updated.id ? { ...r, is_pinned: updated.is_pinned as boolean } : r
-              )
-            );
+              );
+              const pinned = updated_list
+                .filter((r) => r.is_pinned)
+                .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+              const nonPinned = updated_list
+                .filter((r) => !r.is_pinned)
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+              return [...pinned, ...nonPinned];
+            });
             setCurrentTask((prev) =>
               prev && prev.id === updated.id ? { ...prev, is_pinned: updated.is_pinned as boolean } : prev
             );
