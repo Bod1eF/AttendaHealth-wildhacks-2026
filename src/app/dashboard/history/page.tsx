@@ -1,16 +1,6 @@
 'use client'
 
 import { useHistory } from '@/hooks/useHistory'
-import { useAuth } from '@/context/AuthContext'
-
-function SearchIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="9" cy="9" r="6" stroke="#7C3AED" strokeWidth="2" />
-      <path d="M13.5 13.5L17 17" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 function FilterIcon() {
   return (
@@ -30,7 +20,6 @@ function formatTime(isoString: string): string {
 }
 
 export default function HistoryPage() {
-  const { nurseInitials } = useAuth()
   const { stats, recentResolutions, loading } = useHistory()
 
   if (loading) {
@@ -43,27 +32,12 @@ export default function HistoryPage() {
 
   return (
     <div className="flex flex-col px-5 pt-6 pb-[120px] bg-bg-primary min-h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-[24px] font-extrabold text-text-primary font-[family-name:var(--font-manrope)]">
-          Attenda
-        </h1>
-        <div className="flex items-center gap-3">
-          <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
-            <SearchIcon />
-          </button>
-          <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-bold">
-            {nurseInitials || 'SJ'}
-          </div>
-        </div>
-      </div>
-
       {/* Page title */}
       <div className="mb-6">
-        <h2 className="text-[24px] font-extrabold text-text-primary font-[family-name:var(--font-manrope)]">
+        <h1 className="text-[28px] font-extrabold tracking-tight text-gray-900">
           Request History
-        </h2>
-        <p className="text-text-muted text-sm mt-1">Review completed interactions.</p>
+        </h1>
+        <p className="text-[#7A7484] text-sm font-medium mt-1">Review completed interactions.</p>
       </div>
 
       {/* Stats cards */}

@@ -1,4 +1,6 @@
-import { supabase } from './supabase'
+import { getSupabase } from './supabase'
+
+const supabase = getSupabase()
 
 export async function acceptRequest(requestId: string): Promise<{ success: boolean; error?: string }> {
   const { error } = await supabase

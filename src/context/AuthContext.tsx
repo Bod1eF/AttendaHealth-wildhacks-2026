@@ -2,7 +2,9 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import type { Nurse } from '@/types/database';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
+
+const supabase = getSupabase();
 
 interface AuthContextType {
   nurse: Nurse | null;

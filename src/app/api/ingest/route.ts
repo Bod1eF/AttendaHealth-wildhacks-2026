@@ -3,16 +3,20 @@ import { createClient } from '@supabase/supabase-js'
 import { GoogleGenAI } from '@google/genai'
 import { ElevenLabsClient } from 'elevenlabs'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
 
-const elevenlabs = new ElevenLabsClient({
-  apiKey: process.env.ELEVENLABS_API_KEY!,
-})
+function getElevenLabs() {
+  return new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY! })
+}
 
-const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
+function getGenAI() {
+  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
+}
 
 const CLASSIFICATION_PROMPT = `You are a hospital request classifier. Given a patient's voice transcript, produce a JSON object with these fields:
 - "title": a short (2-4 word) problem statement, e.g. "IV Site Pain", "Need Food", "Restroom Assist"
@@ -25,6 +29,10 @@ Transcript: `
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = getSupabase()
+    const elevenlabs = getElevenLabs()
+    const genai = getGenAI()
+
     const formData = await req.formData()
     const audioFile = formData.get('audio') as File | null
     const patientName = formData.get('patient') as string | null

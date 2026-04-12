@@ -21,14 +21,18 @@ import uuid
 from datetime import datetime, timezone
 
 import requests as http_requests
+from dotenv import load_dotenv
 from supabase import create_client, Client
+
+# Load .env.local from project root
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+SUPABASE_URL = os.environ.get("NEXT_PUBLIC_SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY", "")
 
 STORAGE_BUCKET = "audio-recordings"
 
