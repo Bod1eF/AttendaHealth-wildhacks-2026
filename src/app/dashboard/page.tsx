@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useRequests } from '@/hooks/useRequests'
@@ -20,9 +20,7 @@ export default function DashboardHome() {
 
   // Store only the ID — derive the full object from the requests list
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null)
-  const [highlightedBedId, setHighlightedBedId] = useState<number | null>(null)
   const [highlightedRequestId, setHighlightedRequestId] = useState<string | null>(null)
-  const highlightCounter = useRef(0)
 
   // Derive selected request from the list so it always has fresh data
   const selectedRequest = useMemo(() => {
@@ -43,32 +41,25 @@ export default function DashboardHome() {
     }
   }, [isAuthenticated, router])
 
-  // Auto-clear highlighted bed after 2s
-  useEffect(() => {
-    if (highlightedBedId === null) return
-    const timer = setTimeout(() => setHighlightedBedId(null), 2000)
-    return () => clearTimeout(timer)
-  }, [highlightedBedId])
-
-
   const handleCurrentTaskTap = useCallback((request: Request) => {
     setSelectedRequestId(request.id)
   }, [])
 
   const handleCardTap = useCallback((request: Request) => {
     setSelectedRequestId(request.id)
-    if (request.bed_id) {
-      setHighlightedBedId(request.bed_id)
-    }
   }, [])
 
   const handleBedTap = useCallback(
     (bedId: number) => {
       const request = requests.find((r) => r.bed_id === bedId)
       if (request) {
-        // Use counter suffix to force React to see a new value every time
-        highlightCounter.current += 1
-        setHighlightedRequestId(`${request.id}::${highlightCounter.current}`)
+        // Toggle: if same request is highlighted, clear it; otherwise set it
+        setHighlightedRequestId((prev) => {
+          const prevId = prev?.split('::')[0]
+          return prevId === request.id ? null : request.id
+        })
+      } else {
+        setHighlightedRequestId(null)
       }
     },
     [requests]
@@ -138,7 +129,6 @@ export default function DashboardHome() {
           requests={requests}
           currentTask={currentTask}
           onBedTap={handleBedTap}
-          highlightedBedId={highlightedBedId}
         />
       </div>
 

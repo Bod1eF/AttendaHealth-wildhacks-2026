@@ -39,7 +39,7 @@ const bedBaseStyle =
 const bedStyles: Record<BedState, string> = {
   none: `${bedBaseStyle} bg-[#E8EDF8] text-[#6B7280] border border-[#D1D5DB]`,
   pending: `${bedBaseStyle} bg-[rgba(83,42,168,0.08)] border-2 border-[rgba(83,42,168,0.4)] text-[#532AA8]`,
-  current: `${bedBaseStyle} bg-[rgba(83,42,168,0.15)] border-2 border-[#532AA8] text-[#532AA8]`,
+  current: `${bedBaseStyle} bg-[#532AA8] text-white border-2 border-[#532AA8]`,
   critical: `${bedBaseStyle} bg-[rgba(186,26,26,0.12)] border-2 border-[rgba(186,26,26,0.5)] text-[#BA1A1A]`,
 };
 
@@ -47,7 +47,7 @@ function BedCell({
   bed,
   room,
   state,
-  highlighted,
+  selected,
   onTap,
 }: {
   bed: Bed;
@@ -95,7 +95,7 @@ function RoomCell({
   beds,
   requests,
   currentTask,
-  highlightedBedId,
+  selectedBedId,
   onBedTap,
   labelPosition,
 }: {
@@ -127,7 +127,7 @@ function RoomCell({
             bed={bed}
             room={room}
             state={getBedState(bed.id, requests, currentTask)}
-            highlighted={highlightedBedId === bed.id}
+            selected={selectedBedId === bed.id}
             onTap={onBedTap}
           />
         ))}
@@ -143,7 +143,6 @@ export default function FloorPlanMap({
   requests,
   currentTask,
   onBedTap,
-  highlightedBedId,
 }: FloorPlanMapProps) {
   const currentBed = currentTask ? beds.find((b) => b.id === currentTask.bed_id) : null;
   const currentRoom = currentBed ? rooms.find((r) => r.id === currentBed.room_id) : null;
@@ -209,8 +208,8 @@ export default function FloorPlanMap({
               beds={beds}
               requests={requests}
               currentTask={currentTask}
-              highlightedBedId={highlightedBedId}
-              onBedTap={onBedTap}
+              selectedBedId={selectedBedId}
+              onBedTap={handleBedTap}
               labelPosition="bottom"
             />
           ))}
@@ -233,8 +232,8 @@ export default function FloorPlanMap({
               beds={beds}
               requests={requests}
               currentTask={currentTask}
-              highlightedBedId={highlightedBedId}
-              onBedTap={onBedTap}
+              selectedBedId={selectedBedId}
+              onBedTap={handleBedTap}
               labelPosition="top"
             />
           ))}
