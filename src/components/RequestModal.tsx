@@ -186,26 +186,40 @@ export default function RequestModal({
             </div>
 
             {/* Language toggle — show if any entry is non-English */}
-            {sortedEntries.some((e) => e.language && !e.language.startsWith('en') && e.original_transcript) && (
-              <div className="flex rounded-lg bg-[#E7EEFF] p-0.5 mb-3">
-                <button
-                  onClick={() => setShowTranslated(true)}
-                  className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-                    showTranslated ? 'bg-white text-[#532AA8] shadow-sm' : 'text-[#7A7484]'
-                  }`}
-                >
-                  English
-                </button>
-                <button
-                  onClick={() => setShowTranslated(false)}
-                  className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-                    !showTranslated ? 'bg-white text-[#532AA8] shadow-sm' : 'text-[#7A7484]'
-                  }`}
-                >
-                  Original
-                </button>
-              </div>
-            )}
+            {(() => {
+              const nonEnglishEntry = sortedEntries.find((e) => e.language && !e.language.startsWith('en') && e.original_transcript)
+              if (!nonEnglishEntry) return null
+              const langCode = nonEnglishEntry.language.toUpperCase()
+              const langNames: Record<string, string> = {
+                ES: 'Spanish', ZH: 'Chinese', FR: 'French', DE: 'German', JA: 'Japanese',
+                KO: 'Korean', PT: 'Portuguese', IT: 'Italian', RU: 'Russian', AR: 'Arabic',
+                HI: 'Hindi', VI: 'Vietnamese', TH: 'Thai', PL: 'Polish', NL: 'Dutch',
+                TR: 'Turkish', SV: 'Swedish', DA: 'Danish', FI: 'Finnish', NO: 'Norwegian',
+                UK: 'Ukrainian', EL: 'Greek', HE: 'Hebrew', ID: 'Indonesian', MS: 'Malay',
+                TL: 'Tagalog', TA: 'Tamil', TE: 'Telugu', BN: 'Bengali', UR: 'Urdu',
+              }
+              const langLabel = langNames[langCode] || langCode
+              return (
+                <div className="flex rounded-lg bg-[#E7EEFF] p-0.5 mb-3">
+                  <button
+                    onClick={() => setShowTranslated(true)}
+                    className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                      showTranslated ? 'bg-white text-[#532AA8] shadow-sm' : 'text-[#7A7484]'
+                    }`}
+                  >
+                    English
+                  </button>
+                  <button
+                    onClick={() => setShowTranslated(false)}
+                    className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                      !showTranslated ? 'bg-white text-[#532AA8] shadow-sm' : 'text-[#7A7484]'
+                    }`}
+                  >
+                    {langLabel}
+                  </button>
+                </div>
+              )
+            })()}
 
             {/* Audio Player — switches between original and translated audio */}
             <div className="mb-3">
@@ -237,21 +251,14 @@ export default function RequestModal({
                         : 'border-transparent hover:bg-white/50'
                     }`}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      {entries.length > 1 && (
-                        <span
-                          className="text-[9px] font-medium uppercase tracking-wide"
-                          style={{ color: isActive ? '#532AA8' : '#7A7484' }}
-                        >
-                          {timeAgo(entry.created_at)}
-                        </span>
-                      )}
-                      {isNonEnglish && (
-                        <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-[#E7EEFF] text-[#532AA8]">
-                          {entry.language.toUpperCase()}
-                        </span>
-                      )}
-                    </div>
+                    {entries.length > 1 && (
+                      <span
+                        className="text-[9px] font-medium uppercase tracking-wide mb-1 block"
+                        style={{ color: isActive ? '#532AA8' : '#7A7484' }}
+                      >
+                        {timeAgo(entry.created_at)}
+                      </span>
+                    )}
                     <p className={`text-[13px] leading-relaxed italic ${isActive ? 'text-[#532AA8]' : 'text-[#3B3347]'}`}>
                       &ldquo;{displayText}&rdquo;
                     </p>
