@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import type { Room, Bed, Request } from "@/types/database";
 
 interface FloorPlanMapProps {
@@ -9,7 +9,6 @@ interface FloorPlanMapProps {
   requests: Request[];
   currentTask: Request | null;
   onBedTap: (bedId: number) => void;
-  highlightedBedId: number | null;
 }
 
 type BedState = "none" | "pending" | "current" | "critical";
@@ -43,6 +42,8 @@ const bedStyles: Record<BedState, string> = {
   critical: `${bedBaseStyle} bg-[rgba(186,26,26,0.12)] border-2 border-[rgba(186,26,26,0.5)] text-[#BA1A1A]`,
 };
 
+const selectedBedStyle = `${bedBaseStyle} bg-[rgba(83,42,168,0.25)] border-2 border-[#532AA8] text-[#532AA8]`;
+
 function BedCell({
   bed,
   room,
@@ -53,34 +54,21 @@ function BedCell({
   bed: Bed;
   room: Room;
   state: BedState;
-  highlighted: boolean;
+  selected: boolean;
   onTap: (bedId: number) => void;
 }) {
-  const [pulse, setPulse] = useState(false);
-
-  useEffect(() => {
-    if (highlighted) {
-      setPulse(true);
-      const timer = setTimeout(() => setPulse(false), 2000);
-      return () => clearTimeout(timer);
-    }
-    setPulse(false);
-  }, [highlighted]);
-
   const label = getBedShortLabel(bed, room);
 
+  const style = selected && state !== "current" ? selectedBedStyle : bedStyles[state];
+
   return (
-    <button
-      onClick={() => onTap(bed.id)}
-      className={`${bedStyles[state]} ${pulse ? "animate-pulse scale-105" : ""}`}
-    >
-      <span className={`text-[10px] ${state === "current" ? "font-extrabold" : "font-bold"}`}>
+    <button onClick={() => onTap(bed.id)} className={style}>
+      <span className={`text-[10px] ${state === "current" || selected ? "font-extrabold" : "font-bold"}`}>
         {label}
       </span>
 
-      {/* State indicator — square corner markers matching Figma */}
-      {state === "current" && <div className="absolute top-0 right-0 w-2 h-2 bg-[#532AA8]" />}
-      {state === "pending" && (
+      {state === "current" && <div className="absolute top-0 right-0 w-2 h-2 bg-white/50 rounded-bl-sm" />}
+      {state === "pending" && !selected && (
         <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-[rgba(83,42,168,0.4)]" />
       )}
       {state === "critical" && (
@@ -103,7 +91,7 @@ function RoomCell({
   beds: Bed[];
   requests: Request[];
   currentTask: Request | null;
-  highlightedBedId: number | null;
+  selectedBedId: number | null;
   onBedTap: (bedId: number) => void;
   labelPosition: "top" | "bottom";
 }) {
@@ -153,6 +141,15 @@ export default function FloorPlanMap({
   const activeLabel = currentBed && currentRoom ? getBedShortLabel(currentBed, currentRoom) : null;
 
   const [minimized, setMinimized] = useState(false);
+  const [selectedBedId, setSelectedBedId] = useState<number | null>(null);
+
+  const handleBedTap = useCallback(
+    (bedId: number) => {
+      setSelectedBedId((prev) => (prev === bedId ? null : bedId));
+      onBedTap(bedId);
+    },
+    [onBedTap]
+  );
 
   return (
     <section
@@ -193,7 +190,7 @@ export default function FloorPlanMap({
         </div>
       </div>
 
-      {/* Map container — architectural blueprint style */}
+      {/* Map container */}
       <div
         className={`relative w-full bg-[#D8E0F0] rounded-lg p-2 flex flex-col gap-1.5 border border-[#B0B8CC] transition-all duration-300 overflow-hidden ${
           minimized ? "h-0 p-0 border-0 opacity-0" : "h-48 opacity-100"
