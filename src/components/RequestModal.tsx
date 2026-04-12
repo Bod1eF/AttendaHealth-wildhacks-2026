@@ -49,6 +49,7 @@ export default function RequestModal({
   const { showToast } = useToast();
 
   const [patient, setPatient] = useState<Patient | null>(null);
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -57,6 +58,11 @@ export default function RequestModal({
     return () => {
       document.body.style.overflow = "";
     };
+  }, [request]);
+
+  // Reset selected entry when request changes
+  useEffect(() => {
+    setSelectedEntryId(null);
   }, [request]);
 
   // Fetch patient for this bed
@@ -80,6 +86,11 @@ export default function RequestModal({
   const entries = request.entries || [];
   const latestEntry = entries.length > 0 ? entries[entries.length - 1] : null;
   const sortedEntries = [...entries].reverse();
+
+  // The entry whose audio is currently playing — defaults to latest
+  const activeEntry = selectedEntryId
+    ? entries.find((e) => e.id === selectedEntryId) ?? latestEntry
+    : latestEntry;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
@@ -161,40 +172,51 @@ export default function RequestModal({
                 className="text-[10px] font-bold uppercase tracking-widest"
                 style={{ color: "#532AA8" }}
               >
-                Voice Request
+                Voice Request{entries.length > 1 ? `s (${entries.length})` : ''}
               </span>
-              {latestEntry && (
+              {activeEntry && (
                 <span
                   className="text-[10px] font-medium uppercase tracking-wide"
                   style={{ color: "#7A7484" }}
                 >
-                  {timeAgo(latestEntry.created_at)}
+                  {timeAgo(activeEntry.created_at)}
                 </span>
               )}
             </div>
 
-            {/* Audio Player */}
+            {/* Audio Player — plays the selected entry's audio */}
             <div className="mb-3">
-              <AudioPlayer audioUrl={latestEntry?.audio_url ?? null} />
+              <AudioPlayer audioUrl={activeEntry?.audio_url ?? null} />
             </div>
 
-            {/* Transcript text — styled as quotation */}
-            <div className="border-l-[3px] border-[#532AA8]/30 pl-3">
-              {sortedEntries.map((entry) => (
-                <div key={entry.id} className="mb-3 last:mb-0">
-                  {entries.length > 1 && (
-                    <span
-                      className="text-[9px] font-medium uppercase tracking-wide mb-1 block"
-                      style={{ color: "#7A7484" }}
-                    >
-                      {timeAgo(entry.created_at)}
-                    </span>
-                  )}
-                  <p className="text-[13px] leading-relaxed italic text-[#3B3347]">
-                    &ldquo;{entry.transcript}&rdquo;
-                  </p>
-                </div>
-              ))}
+            {/* Transcript list — tap to select */}
+            <div className="space-y-2">
+              {sortedEntries.map((entry) => {
+                const isActive = activeEntry?.id === entry.id
+                return (
+                  <button
+                    key={entry.id}
+                    onClick={() => setSelectedEntryId(entry.id)}
+                    className={`w-full text-left rounded-xl p-2.5 transition-all border ${
+                      isActive
+                        ? 'border-[#532AA8]/40 bg-[rgba(83,42,168,0.08)]'
+                        : 'border-transparent hover:bg-white/50'
+                    }`}
+                  >
+                    {entries.length > 1 && (
+                      <span
+                        className="text-[9px] font-medium uppercase tracking-wide mb-1 block"
+                        style={{ color: isActive ? '#532AA8' : '#7A7484' }}
+                      >
+                        {timeAgo(entry.created_at)}
+                      </span>
+                    )}
+                    <p className={`text-[13px] leading-relaxed italic ${isActive ? 'text-[#532AA8]' : 'text-[#3B3347]'}`}>
+                      &ldquo;{entry.transcript}&rdquo;
+                    </p>
+                  </button>
+                )
+              })}
               {sortedEntries.length === 0 && (
                 <p className="text-[13px] italic text-[#7A7484]">No transcript available</p>
               )}
