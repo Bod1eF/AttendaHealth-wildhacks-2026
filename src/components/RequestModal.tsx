@@ -101,7 +101,7 @@ export default function RequestModal({
 
           {/* Room + Bed title */}
           <h2 className="text-[22px] font-extrabold mt-1">
-            Room {roomLabel}, Bed {bedLabel}
+            {roomLabel}, {bedLabel}
           </h2>
 
           {/* Patient info */}

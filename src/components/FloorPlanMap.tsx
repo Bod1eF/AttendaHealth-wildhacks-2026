@@ -166,7 +166,7 @@ export default function FloorPlanMap({
       : null
 
   return (
-    <section className="bg-[#F0F3FF] border-t border-[rgba(203,195,213,0.1)] px-4 pt-2 pb-[88px]">
+    <section className="bg-[#F0F3FF] border-t border-[rgba(203,195,213,0.1)] px-4 pt-2 pb-[108px]">
       {/* Header */}
       <div className="flex items-center justify-between mb-2 px-1">
         <h2 className="text-[14px] font-extrabold text-gray-900">
