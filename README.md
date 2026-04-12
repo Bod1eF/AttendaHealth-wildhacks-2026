@@ -4,7 +4,37 @@ Mobile-first nurse request management dashboard. Nurses see incoming patient req
 
 Built with Next.js, Supabase, and Tailwind CSS.
 
-## Setup
+We used Claude Code as our primary development tool to rapidly build Attenda from the ground up. We worked iteratively through natural language — describing features, reviewing visual output, and giving real-time feedback to refine the UI and functionality. Claude handled the full-stack implementation pipeline including database schema, backend API routes, frontend components, and deployment, while we focused on design direction, UX decisions, and quality control.
+
+## Live Demo
+
+**[wildhacks-2026-eta.vercel.app](https://wildhacks-2026-eta.vercel.app/)**
+
+### Try it as a Nurse
+
+1. Open the link above
+2. Make sure **Nurse Login** is selected
+3. Log in with:
+   - **Employee ID:** `NRS-001`
+   - **Password:** anything
+4. You'll see the dashboard with the request queue, floor plan, and navigation
+
+### Try it as a Patient
+
+1. Open the link and switch to **Patient Login**
+2. Log in with any of these patient IDs (password for all: `password123`):
+
+| Patient ID | Name |
+|-----------|------|
+| `PT-1001` | Robert Chen |
+| `PT-1002` | Maria Garcia |
+| `PT-1003` | James Wilson |
+| `PT-1004` | Eleanor Shellstrop |
+
+3. Record an audio message or upload an `.m4a` / `.mp3` file
+4. Tap **Send to Nurse** — the request will appear on the nurse dashboard in real time
+
+## Local Setup
 
 ### 1. Install dependencies
 
