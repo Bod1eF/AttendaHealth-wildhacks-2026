@@ -185,11 +185,6 @@ export default function RequestModal({
               )}
             </div>
 
-            {/* Audio Player — plays the selected entry's audio */}
-            <div className="mb-3">
-              <AudioPlayer audioUrl={activeEntry?.audio_url ?? null} />
-            </div>
-
             {/* Language toggle — show if any entry is non-English */}
             {sortedEntries.some((e) => e.language && !e.language.startsWith('en') && e.original_transcript) && (
               <div className="flex rounded-lg bg-[#E7EEFF] p-0.5 mb-3">
@@ -211,6 +206,17 @@ export default function RequestModal({
                 </button>
               </div>
             )}
+
+            {/* Audio Player — switches between original and translated audio */}
+            <div className="mb-3">
+              {(() => {
+                const isNonEnglish = activeEntry?.language && !activeEntry.language.startsWith('en') && activeEntry.original_transcript
+                const playUrl = isNonEnglish && showTranslated && activeEntry?.translated_audio_url
+                  ? activeEntry.translated_audio_url
+                  : activeEntry?.audio_url ?? null
+                return <AudioPlayer audioUrl={playUrl} />
+              })()}
+            </div>
 
             {/* Transcript list — tap to select */}
             <div className="space-y-2">

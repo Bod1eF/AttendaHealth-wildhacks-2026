@@ -98,6 +98,7 @@ export async function POST(req: NextRequest) {
 
     // Translate to English if not English, using Gemini
     let translatedTranscript: string | null = null
+    let translatedAudioUrl: string | null = null
     let transcript = originalTranscript
 
     if (!isEnglish && originalTranscript) {
@@ -106,8 +107,35 @@ export async function POST(req: NextRequest) {
         contents: `Translate the following text to English. Return ONLY the translated text, nothing else.\n\nText: ${originalTranscript}`,
       })
       translatedTranscript = translationResponse.text?.trim() || originalTranscript
-      // Use translated version for classification
       transcript = translatedTranscript
+
+      // Generate English TTS audio
+      try {
+        const ttsAudio = await elevenlabs.textToSpeech.convert('JBFqnCBsd6RMkjVDRZzb', {
+          text: translatedTranscript,
+          modelId: 'eleven_multilingual_v2',
+          outputFormat: 'mp3_44100_128',
+        })
+
+        // Convert stream to buffer and upload
+        const chunks: Uint8Array[] = []
+        for await (const chunk of ttsAudio as AsyncIterable<Uint8Array>) {
+          chunks.push(chunk)
+        }
+        const ttsBuffer = Buffer.concat(chunks)
+        const ttsFilename = `translated-${crypto.randomUUID()}.mp3`
+
+        await supabase.storage
+          .from('audio-recordings')
+          .upload(ttsFilename, ttsBuffer, { contentType: 'audio/mpeg' })
+
+        const { data: ttsUrlData } = supabase.storage
+          .from('audio-recordings')
+          .getPublicUrl(ttsFilename)
+        translatedAudioUrl = ttsUrlData.publicUrl
+      } catch (ttsErr) {
+        console.error('TTS generation failed:', ttsErr)
+      }
     }
 
     // 4. Check for existing pending request for this bed
@@ -224,6 +252,7 @@ export async function POST(req: NextRequest) {
       translated_transcript: translatedTranscript,
       language: detectedLanguage,
       audio_url: audioUrl,
+      translated_audio_url: translatedAudioUrl,
       title: classification.title,
       category: classification.category,
       severity: classification.severity,

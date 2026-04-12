@@ -61,6 +61,7 @@ export interface RequestEntry {
   translated_transcript: string | null
   language: string
   audio_url: string | null
+  translated_audio_url: string | null
   title: string
   category: string
   severity: string
