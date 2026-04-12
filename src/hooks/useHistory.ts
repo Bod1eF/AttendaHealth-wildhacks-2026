@@ -15,6 +15,7 @@ interface HistoryStats {
 }
 
 interface RecentResolution {
+  requestId: string
   patientName: string
   roomLabel: string
   category: string
@@ -24,6 +25,7 @@ interface RecentResolution {
 interface UseHistoryReturn {
   stats: HistoryStats
   recentResolutions: RecentResolution[]
+  resolvedRequests: Request[]
   loading: boolean
 }
 
@@ -42,6 +44,7 @@ export function useHistory(): UseHistoryReturn {
     successRate: '0%',
   })
   const [recentResolutions, setRecentResolutions] = useState<RecentResolution[]>([])
+  const [resolvedRequests, setResolvedRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -163,6 +166,8 @@ export function useHistory(): UseHistoryReturn {
           successRate,
         })
 
+        setResolvedRequests(resolvedRequests)
+
         // Build recent resolutions
         const recent: RecentResolution[] = resolvedRequests.slice(0, 20).map((r) => {
           const patient = patientByBedId.get(r.bed_id)
@@ -173,6 +178,7 @@ export function useHistory(): UseHistoryReturn {
           )[0]
 
           return {
+            requestId: r.id,
             patientName: patient?.name ?? 'Unknown Patient',
             roomLabel,
             category: latestEntry?.category ?? 'General',
@@ -191,5 +197,5 @@ export function useHistory(): UseHistoryReturn {
     fetchHistory()
   }, [nurse])
 
-  return { stats, recentResolutions, loading }
+  return { stats, recentResolutions, resolvedRequests, loading }
 }

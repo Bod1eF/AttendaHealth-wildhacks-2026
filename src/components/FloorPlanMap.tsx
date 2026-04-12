@@ -165,6 +165,8 @@ export default function FloorPlanMap({
       ? getBedShortLabel(currentBed, currentRoom)
       : null
 
+  const [minimized, setMinimized] = useState(false)
+
   return (
     <section className="bg-[#F0F3FF] border-t border-[rgba(203,195,213,0.1)] px-4 pt-2 pb-[108px]">
       {/* Header */}
@@ -172,16 +174,36 @@ export default function FloorPlanMap({
         <h2 className="text-[14px] font-extrabold text-gray-900">
           Unit 4B Floor Plan
         </h2>
-        {activeLabel && (
-          <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-[#532AA8] uppercase tracking-widest">
-            <span className="w-2 h-2 rounded-full bg-[#532AA8] animate-pulse" />
-            ACTIVE: {activeLabel}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {activeLabel && (
+            <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-[#532AA8] uppercase tracking-widest">
+              <span className="w-2 h-2 rounded-full bg-[#532AA8] animate-pulse" />
+              ACTIVE: {activeLabel}
+            </div>
+          )}
+          <button
+            onClick={() => setMinimized((prev) => !prev)}
+            className="w-6 h-6 rounded-md bg-[#D8E0F0] border border-[#B0B8CC] flex items-center justify-center"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              className={`transition-transform duration-200 ${minimized ? 'rotate-180' : ''}`}
+            >
+              <path d="M2 4.5L6 8.5L10 4.5" stroke="#5A6275" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Map container — architectural blueprint style */}
-      <div className="relative w-full h-48 bg-[#D8E0F0] rounded-lg p-2 flex flex-col gap-1.5 border border-[#B0B8CC]">
+      <div
+        className={`relative w-full bg-[#D8E0F0] rounded-lg p-2 flex flex-col gap-1.5 border border-[#B0B8CC] transition-all duration-300 overflow-hidden ${
+          minimized ? 'h-0 p-0 border-0 opacity-0' : 'h-48 opacity-100'
+        }`}
+      >
         {/* Top row */}
         <div className="flex-1 flex gap-2">
           {topRooms.map((room) => (

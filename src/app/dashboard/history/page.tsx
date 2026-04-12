@@ -1,6 +1,9 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import { useHistory } from '@/hooks/useHistory'
+import RequestModal from '@/components/RequestModal'
+import type { Request } from '@/types/database'
 
 function FilterIcon() {
   return (
@@ -20,7 +23,24 @@ function formatTime(isoString: string): string {
 }
 
 export default function HistoryPage() {
-  const { stats, recentResolutions, loading } = useHistory()
+  const { stats, recentResolutions, resolvedRequests, loading } = useHistory()
+  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null)
+
+  const handleCardTap = useCallback(
+    (requestId: string) => {
+      const req = resolvedRequests.find((r) => r.id === requestId) ?? null
+      setSelectedRequest(req)
+    },
+    [resolvedRequests]
+  )
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedRequest(null)
+  }, [])
+
+  // No-ops for resolved requests — actions aren't available
+  const noop = useCallback(async () => {}, [])
+  const noopPin = useCallback(async (_id: string, _pinned: boolean) => {}, [])
 
   if (loading) {
     return (
@@ -31,7 +51,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="flex flex-col px-5 pt-6 pb-[120px] bg-bg-primary min-h-full">
+    <div className="flex flex-col px-5 pt-6 bg-bg-primary h-full overflow-hidden">
       {/* Page title */}
       <div className="mb-6">
         <h1 className="text-[28px] font-extrabold tracking-tight text-gray-900">
@@ -41,43 +61,40 @@ export default function HistoryPage() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        {/* Total Today - spans full width on first row or 2 cols */}
-        <div className="col-span-2 bg-purple-600 rounded-2xl p-5 shadow-md relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500 rounded-full -mr-8 -mt-8 opacity-30" />
-          <p className="text-purple-200 text-xs font-bold uppercase tracking-wider mb-1">Total Today</p>
-          <p className="text-white text-[32px] font-extrabold font-[family-name:var(--font-manrope)] leading-tight">
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="col-span-2 bg-purple-600 rounded-xl p-3.5 shadow-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500 rounded-full -mr-6 -mt-6 opacity-30" />
+          <p className="text-purple-200 text-[9px] font-bold uppercase tracking-wider mb-0.5">Total Today</p>
+          <p className="text-white text-[24px] font-extrabold leading-tight">
             {stats.totalToday}
           </p>
-          <span className="inline-block mt-2 px-2 py-0.5 bg-green-400/20 text-green-300 text-xs font-bold rounded-full">
+          <span className="inline-block mt-1 px-2 py-0.5 bg-green-400/20 text-green-300 text-[10px] font-bold rounded-full">
             {stats.percentChange}
           </span>
         </div>
 
-        {/* Avg Response */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <p className="text-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
+        <div className="bg-white rounded-xl p-3 shadow-sm">
+          <p className="text-text-muted text-[9px] font-bold uppercase tracking-wider mb-1">
             Avg. Response
           </p>
-          <p className="text-text-primary text-[20px] font-extrabold font-[family-name:var(--font-manrope)]">
+          <p className="text-text-primary text-[16px] font-extrabold">
             {stats.avgResponseTime}
           </p>
         </div>
 
-        {/* Success Rate */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <p className="text-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
+        <div className="bg-white rounded-xl p-3 shadow-sm">
+          <p className="text-text-muted text-[9px] font-bold uppercase tracking-wider mb-1">
             Success Rate
           </p>
-          <p className="text-text-primary text-[20px] font-extrabold font-[family-name:var(--font-manrope)]">
+          <p className="text-text-primary text-[16px] font-extrabold">
             {stats.successRate}
           </p>
         </div>
       </div>
 
       {/* Recent Resolutions */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
+      <div className="flex-1 min-h-0 flex flex-col pb-[88px]">
+        <div className="flex items-center justify-between mb-4 shrink-0">
           <h3 className="text-lg font-extrabold text-text-primary font-[family-name:var(--font-manrope)]">
             Recent Resolutions
           </h3>
@@ -86,14 +103,15 @@ export default function HistoryPage() {
           </button>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 overflow-y-auto flex-1 min-h-0">
           {recentResolutions.length === 0 ? (
             <p className="text-text-muted text-sm text-center py-8">No resolved requests yet.</p>
           ) : (
-            recentResolutions.map((item, index) => (
+            recentResolutions.map((item) => (
               <div
-                key={index}
-                className="bg-white rounded-2xl p-4 shadow-sm flex items-center justify-between"
+                key={item.requestId}
+                onClick={() => handleCardTap(item.requestId)}
+                className="bg-white rounded-2xl p-4 shadow-sm flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
@@ -117,6 +135,17 @@ export default function HistoryPage() {
           )}
         </div>
       </div>
+
+      {/* Request Modal */}
+      <RequestModal
+        request={selectedRequest}
+        isCurrentTask={false}
+        hasCurrentTask={false}
+        onClose={handleCloseModal}
+        onAccept={noop}
+        onResolve={noop}
+        onPin={noopPin}
+      />
     </div>
   )
 }
