@@ -26,17 +26,6 @@ ELEVENLABS_API_KEY=your-elevenlabs-api-key
 - **Gemini API key:** get one free at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 - **ElevenLabs API key:** get one at [elevenlabs.io](https://elevenlabs.io) (free tier available)
 
-### 3. Database
-
-Run the schema against your Supabase project to create tables and seed data:
-
-```bash
-npx supabase link --project-ref YOUR_PROJECT_REF
-npx supabase db query --linked -f supabase/schema.sql
-```
-
-This creates: `rooms`, `beds`, `nurses`, `patients`, `requests`, `request_entries` tables with seed data (4 rooms, 8 beds, 1 nurse, 4 patients).
-
 ### 4. Run the app
 
 ```bash
