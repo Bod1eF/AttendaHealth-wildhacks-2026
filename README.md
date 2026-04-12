@@ -67,7 +67,16 @@ The Python script is a simple CLI wrapper around the API. Make sure the app is r
 pip install -r scripts/requirements.txt
 ```
 
-#### List available patients
+#### Available patients
+
+| Patient | Room | Bed |
+|---------|------|-----|
+| Robert Chen | Room 1 | Bed A |
+| Maria Garcia | Room 2 | Bed B |
+| James Wilson | Room 4 | Bed A |
+| Eleanor Shellstrop | Room 3 | Bed A |
+
+You can also list them dynamically (requires `SUPABASE_URL` and `SUPABASE_KEY` env vars):
 
 ```bash
 python scripts/ingest.py --list-patients
