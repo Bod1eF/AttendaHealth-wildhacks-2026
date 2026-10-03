@@ -1,8 +1,12 @@
-# Attenda
+# What Is It?
 
-Mobile-first nurse request management dashboard aimed at replacing traditional & analog hospital call bell systems. Nurses see incoming patient requests in real time, accept tasks, and track them on a hospital floor plan.
+AttendaHealth is a Mobile-first nurse request management dashboard aimed at replacing traditional & analog hospital call bell systems. Nurses see incoming patient requests in real time, accept tasks, and track them on a hospital floor plan.
 
 Built with Next.js, Supabase, and Tailwind CSS.
+
+Won 2nd place overall at WildHacks 2026 🎉🎉🎉
+
+The DevPost listing & demo video can be found [here](https://devpost.com/software/chud-hacks?_gl=1*8uj8kj*_gcl_au*MTU5Nzg3NDYwMS4xNzkxMDY2NjM4*_ga*ODUxMTA3NjI5LjE3OTEwNjY2Mzk.*_ga_0YHJK3Y10M*czE3OTEwNjY2MzgkbzEkZzAkdDE3OTEwNjY2MzgkajYwJGwwJGgw)
 
 ## Local Setup
 
